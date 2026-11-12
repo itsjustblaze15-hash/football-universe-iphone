@@ -11503,6 +11503,62 @@ body.player-calendar-advancing #playerNextMatchBtn{
 }
 
 </style>
+<style id="fus-phone-refresh">
+/* The phone reveal stacks both teams and the VS badge on the same axis. */
+@media (max-width: 700px) {
+  #knockoutRevealDialog .reveal-matchup > .reveal-vs {
+    justify-self: center;
+  }
+}
+
+.fus-phone-update {
+  display: none;
+}
+
+@media (max-width: 760px) and (pointer: coarse),
+       (max-width: 1000px) and (max-height: 500px) and (pointer: coarse) {
+  .fus-phone-update {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    margin-top: 4px;
+    text-align: center;
+  }
+
+  #fusCheckUpdate {
+    min-height: 44px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #a9c5ed;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    touch-action: manipulation;
+  }
+
+  #fusCheckUpdate:active {
+    background: #a9c5ed20;
+  }
+
+  #fusCheckUpdate:focus-visible {
+    outline: 2px solid #8cb7ff;
+    outline-offset: -3px;
+  }
+
+  #fusUpdateStatus {
+    margin: 0;
+    color: #d3e1f6;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  #fusUpdateStatus:empty {
+    display: none;
+  }
+}
+</style>
 </head>
 <body>
   <div id="toast" class="toast hidden" aria-live="polite"></div>
@@ -11524,6 +11580,11 @@ body.player-calendar-advancing #playerNextMatchBtn{
                 <button type="button" class="btn secondary" id="scenarioModeBtn">🎯 Scenario Mode</button>
                 <button type="button" class="btn secondary" id="managerModeBtn">💼 Manager Mode</button>
                 <button type="button" class="btn secondary player-mode-entry" id="playerModeBtn">⭐ Player Mode</button>
+              </div>
+
+              <div class="fus-phone-update">
+                <button type="button" id="fusCheckUpdate">Update</button>
+                <p id="fusUpdateStatus" role="status" aria-live="polite"></p>
               </div>
 
               <div class="main-menu-strip">
@@ -36384,6 +36445,93 @@ function renderWorldCupQualification() {
       }
     }
     bootFootballUniverse();
+
+    function setupPhoneUpdate() {
+      const build = "2c718b94e815b029";
+      const button = $("fusCheckUpdate");
+      const status = $("fusUpdateStatus");
+      const newest = "You’re on the newest version.";
+
+      const url = new URL(location.href);
+      const requestedBuild = url.searchParams.get("fus-update");
+      if (requestedBuild) {
+        status.textContent = requestedBuild === build
+          ? newest
+          : "The update is still publishing. Try again shortly.";
+        url.searchParams.delete("fus-update");
+        url.searchParams.delete("fus-refresh");
+        history.replaceState(history.state, "", url);
+      }
+
+      function menuIsReady() {
+        return currentGameMode === "menu"
+          && !$("fusMain").inert
+          && !$("modeScreen").classList.contains("hidden")
+          && !$("mainCareerImportInput").files.length
+          && !document.querySelector("dialog[open]");
+      }
+
+      button.addEventListener("click", async () => {
+        if (button.disabled || !menuIsReady()) return;
+
+        button.disabled = true;
+        status.textContent = "Checking for updates…";
+        const request = new AbortController();
+        const timeout = setTimeout(() => request.abort(), 8000);
+        let navigating = false;
+
+        try {
+          const releaseUrl = new URL("./fus-release.json", location.href);
+          releaseUrl.searchParams.set("fresh", Date.now().toString(36));
+          const response = await fetch(releaseUrl, { cache: "no-store", signal: request.signal });
+          if (!response.ok) throw new Error("Release check failed.");
+          const release = await response.json();
+          if (!release || typeof release.build !== "string" || !/^[a-f0-9]{16}$/.test(release.build)) {
+            throw new Error("Invalid release.");
+          }
+          clearTimeout(timeout);
+
+          if (release.build === build) {
+            status.textContent = newest;
+            return;
+          }
+
+          if (!menuIsReady()) {
+            status.textContent = "Return to the main menu to update.";
+            return;
+          }
+
+          try {
+            if (pendingSimulationSaveMessage && !flushPendingSimulationSave()) {
+              throw new Error("The simulation could not be saved.");
+            }
+            await indexedDbSaveQueue;
+          } catch {
+            status.textContent = "Update paused because a save failed.";
+            return;
+          }
+
+          if (!menuIsReady()) {
+            status.textContent = "Return to the main menu to update.";
+            return;
+          }
+
+          status.textContent = "Installing…";
+          const latestUrl = new URL(location.href);
+          latestUrl.searchParams.set("fus-update", release.build);
+          latestUrl.searchParams.set("fus-refresh", Date.now().toString(36));
+          location.replace(latestUrl);
+          navigating = true;
+        } catch {
+          status.textContent = "Couldn’t check for updates. Try again.";
+        } finally {
+          clearTimeout(timeout);
+          if (!navigating) button.disabled = false;
+        }
+      });
+    }
+
+    setupPhoneUpdate();
   </script>
 </body>
 </html>
