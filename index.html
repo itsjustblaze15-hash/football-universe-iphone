@@ -6,26 +6,16 @@
   <meta name="theme-color" content="#06101f" />
   <meta name="description" content="Create a football world, manage a club, or play out a football career." />
   <title>Football Universe Simulator</title>
-  <link id="fusFavicon" rel="icon" type="image/png" href="./fus-icon.png" />
-  <link id="fusTouchIcon" rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
+  <link id="fusFavicon" rel="icon" type="image/png" href="./fus-home-192.png" />
+  <link id="fusTouchIcon" rel="apple-touch-icon" sizes="180x180" href="./fus-home-180.png" />
   <link id="fusManifest" rel="manifest" href="./manifest.webmanifest" />
   <meta name="apple-mobile-web-app-title" content="FUS" />
   <script>
-    (() => {
-      const choice = new URLSearchParams(location.search).get("icon");
-      const appearance = matchMedia("(prefers-color-scheme: dark)");
-
-      function selectIcon() {
-        const dark = choice === "dark" || (choice !== "blue" && appearance.matches);
-        const suffix = dark ? "-dark" : "";
-        document.getElementById("fusFavicon").href = `./fus-icon${suffix}.png`;
-        document.getElementById("fusTouchIcon").href = `./apple-touch-icon${suffix}.png`;
-        document.getElementById("fusManifest").href = `./manifest${suffix}.webmanifest`;
-      }
-
-      selectIcon();
-      if (choice !== "dark" && choice !== "blue") appearance.addEventListener("change", selectIcon);
-    })();
+    if (new URLSearchParams(location.search).get("icon") === "dark") {
+      document.getElementById("fusFavicon").href = "./fus-icon-dark.png";
+      document.getElementById("fusTouchIcon").href = "./apple-touch-icon-dark.png";
+      document.getElementById("fusManifest").href = "./manifest-dark.webmanifest";
+    }
   </script>
   <style>
     :root {
@@ -11559,6 +11549,340 @@ body.player-calendar-advancing #playerNextMatchBtn{
   }
 }
 </style>
+<style id="fus-manager-live-style">
+    .manager-live-controls {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(3, 13, 31, .55);
+    }
+    .manager-live-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px 12px;
+    }
+    .manager-live-toolbar .muted { font-size: .85rem; }
+    .manager-live-sub-form { display: grid; gap: 12px; margin-top: 12px; }
+    .manager-live-picks {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 14px;
+    }
+    .manager-live-picks label { display: grid; gap: 4px; min-width: 0; }
+    .manager-live-picks select {
+      width: 100%;
+      max-width: 100%;
+      min-height: 44px;
+      font-size: 16px;
+    }
+    .manager-live-controls button { min-height: 44px; }
+    .manager-live-report {
+      min-width: 0;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+    .manager-live-report summary { cursor: pointer; min-height: 32px; padding: 6px 0; }
+    .manager-live-report table { width: 100%; margin: 8px 0 0; }
+    .manager-live-report th[scope="row"] { text-align: left; overflow-wrap: anywhere; }
+    .manager-live-report :is(td, th) { padding: 6px; }
+    @media (max-width: 520px) {
+      .manager-live-picks { grid-template-columns: minmax(0, 1fr); }
+      .manager-live-sub-form .btn { width: 100%; }
+    }
+</style>
+<style id="fus-club-calendar-style">
+.fus-form-entry .btn {
+  margin-top: 11px;
+}
+
+.fus-club-calendar-dialog {
+  width: min(760px, calc(100% - 24px));
+}
+
+.fus-club-calendar-dialog .archive-header {
+  align-items: center;
+  gap: 10px;
+}
+
+.fus-club-calendar-dialog .archive-header h2 {
+  margin: 0;
+}
+
+.fus-club-calendar-filters,
+.fus-club-calendar-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-block: 0 12px;
+}
+
+.fus-club-calendar-filters label {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.fus-club-calendar-dialog :is(select,button) {
+  min-height: 44px;
+}
+
+.fus-club-calendar-month-nav,
+.fus-club-calendar-match-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-block: 14px 8px;
+}
+
+.fus-club-calendar-month-nav h3,
+.fus-club-calendar-match-heading h3 {
+  margin: 0;
+}
+
+.fus-club-calendar-month-nav button {
+  min-width: 44px;
+  flex-shrink: 0;
+}
+
+.fus-club-calendar-dialog .player-calendar-weekdays span {
+  text-align: center;
+  font-size: 11px;
+  padding-block: 4px;
+  color: var(--muted);
+}
+
+.fus-club-calendar-dialog .fus-club-calendar-day {
+  min-width: 0;
+  min-height: 52px;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  padding: 3px 0;
+  border-radius: 8px;
+  color: var(--text);
+  text-align: center;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.fus-club-calendar-day small {
+  font-size: 10px;
+  font-weight: 850;
+}
+
+button.fus-club-calendar-day {
+  background: rgba(79, 156, 255, .12);
+  border-color: rgba(79, 156, 255, .4);
+  touch-action: manipulation;
+}
+
+button.fus-club-calendar-day[aria-pressed="true"] {
+  outline: 2px solid #93c5fd;
+  outline-offset: -2px;
+}
+
+.fus-club-calendar-dialog [data-outcome="W"] {
+  color: #a7f3d0;
+  background: rgba(16,185,129,.14);
+}
+
+.fus-club-calendar-dialog [data-outcome="D"] {
+  color: #fde68a;
+  background: rgba(245,158,11,.13);
+}
+
+.fus-club-calendar-dialog [data-outcome="L"] {
+  color: #fecaca;
+  background: rgba(239,68,68,.13);
+}
+
+.fus-club-calendar-list {
+  display: grid;
+  gap: 6px;
+  padding: 0;
+  margin-block: 6px 0;
+  list-style: none;
+}
+
+.fus-club-calendar-match {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+  background: rgba(255,255,255,.03);
+}
+
+.fus-club-calendar-match small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.fus-club-calendar-score {
+  min-width: 50px;
+  padding: 4px 6px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.fus-club-calendar-score small {
+  color: inherit;
+}
+
+.fus-club-calendar-note {
+  margin-block: 9px 0;
+  font-size: 12px;
+}
+
+.fus-club-calendar-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.fus-club-calendar-metrics > div,
+.fus-club-calendar-months details {
+  padding: 8px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  overflow-wrap: anywhere;
+}
+
+.fus-club-calendar-metrics small,
+.fus-club-calendar-metrics strong {
+  display: block;
+}
+
+.fus-club-calendar-metrics small {
+  color: var(--muted);
+}
+
+.fus-club-calendar-metrics strong {
+  margin-top: 4px;
+}
+
+.fus-club-calendar-months {
+  display: grid;
+  gap: 7px;
+}
+
+.fus-club-calendar-months summary {
+  min-height: 44px;
+  padding-block: 10px;
+  cursor: pointer;
+}
+
+.fus-club-calendar-months summary span {
+  display: inline-block;
+  margin-inline-start: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+@media (max-width: 520px) {
+  .fus-club-calendar-dialog {
+    padding: 10px;
+  }
+
+  .fus-club-calendar-dialog .archive-header h2 {
+    flex: 1 1 155px;
+    font-size: 20px;
+  }
+
+  .fus-club-calendar-filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fus-club-calendar-dialog select {
+    font-size: 16px;
+  }
+
+  .fus-club-calendar-dialog .fus-club-calendar-day {
+    min-height: 48px;
+    font-size: 13px;
+  }
+
+  .fus-club-calendar-day small {
+    font-size: 8px;
+  }
+}
+
+</style>
+
+<style id="fus-phone-standings">
+@media (max-width: 760px), (max-width: 1000px) and (pointer: coarse),
+       (max-width: 1000px) and (max-height: 500px) {
+  .controlled-club-logo > .your-club-badge {
+    display: none;
+  }
+
+  #tab-team-rankings .rank-podium {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    align-items: stretch;
+  }
+
+  #tab-team-rankings .rank-podium-card {
+    grid-template-rows: auto auto 1fr auto auto auto;
+    align-items: center;
+    gap: 5px;
+    min-height: 0;
+    padding: 8px 3px;
+    border-radius: 12px;
+  }
+
+  #tab-team-rankings .rank-podium-card .logo {
+    width: clamp(34px, 10vw, 56px);
+    height: clamp(34px, 10vw, 56px);
+    border-width: 2px;
+    font-size: 13px;
+  }
+
+  #tab-team-rankings .rank-podium-card .world-cup-star-row {
+    min-height: 12px;
+    margin-bottom: 2px;
+  }
+
+  #tab-team-rankings .rank-podium-position {
+    font-size: 20px;
+  }
+
+  #tab-team-rankings .rank-podium-name {
+    max-width: 100%;
+    font-size: clamp(11px, 3.4vw, 15px);
+    line-height: 1.12;
+  }
+
+  #tab-team-rankings .rank-podium-strength {
+    min-width: 35px;
+    padding: 3px 7px;
+    font-size: 15px;
+  }
+
+  #tab-team-rankings .rank-podium-card :is(.ranking-movement, .form-chip) {
+    min-width: 0;
+    max-width: 100%;
+    padding: 2px 4px;
+    font-size: 10px;
+    white-space: normal;
+  }
+
+  #tab-team-rankings .rank-podium-card .form-chip {
+    width: auto;
+    height: auto;
+    min-height: 18px;
+  }
+}
+</style>
 </head>
 <body>
   <div id="toast" class="toast hidden" aria-live="polite"></div>
@@ -11850,6 +12174,14 @@ body.player-calendar-advancing #playerNextMatchBtn{
     </section>
   </dialog>
 
+  <dialog id="fusClubCalendarDialog" class="archive-dialog fus-club-calendar-dialog" aria-labelledby="fusClubCalendarTitle">
+    <div class="archive-header">
+      <h2 id="fusClubCalendarTitle">Match Calendar &amp; Season Report</h2>
+      <button type="button" class="btn secondary small" data-close="fusClubCalendarDialog">Close</button>
+    </div>
+    <div id="fusClubCalendarContent"></div>
+  </dialog>
+
   <dialog id="playerMatchDialog" class="player-match-dialog">
     <div id="playerMatchDialogContent"></div>
   </dialog>
@@ -11984,6 +12316,20 @@ body.player-calendar-advancing #playerNextMatchBtn{
         <div id="livePlayerStatusMinute" class="player-live-status-minute">ON PITCH</div>
       </div>
 
+      <section id="managerLiveControls" class="manager-live-controls hidden" aria-label="Manage the live lineup">
+        <div class="manager-live-toolbar">
+          <button type="button" id="managerLiveSubToggle" class="btn secondary" aria-expanded="false" aria-controls="managerLiveSubForm">Substitutions</button>
+          <span id="managerLivePulse" class="muted"></span>
+        </div>
+        <form id="managerLiveSubForm" class="manager-live-sub-form hidden">
+          <div class="manager-live-picks">
+            <label>Take off<select id="managerLiveOff" aria-describedby="managerLiveOffInfo"></select><small id="managerLiveOffInfo" class="muted"></small></label>
+            <label>Bring on<select id="managerLiveOn" aria-describedby="managerLiveOnInfo"></select><small id="managerLiveOnInfo" class="muted"></small></label>
+          </div>
+          <button type="submit" id="managerLiveConfirm" class="btn success">Confirm substitution</button>
+        </form>
+      </section>
+
       <div id="liveMatchDecision" class="live-match-decision hidden">
         <div>
           <div class="startup-kicker">MANAGER DECISION</div>
@@ -12063,6 +12409,13 @@ body.player-calendar-advancing #playerNextMatchBtn{
       </div>
 
       <div id="livePostMatchRatings" class="live-postmatch-ratings hidden"></div>
+      <details id="managerLiveReport" class="manager-live-report hidden">
+        <summary>Match minutes and ratings</summary>
+        <table>
+          <thead><tr><th scope="col">Player</th><th scope="col">Minutes</th><th scope="col">Rating</th></tr></thead>
+          <tbody id="managerLiveReportRows"></tbody>
+        </table>
+      </details>
 
       <div class="live-match-feed-wrap">
         <div class="startup-kicker">MATCH FEED</div>
@@ -12591,6 +12944,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
         <button type="button" class="btn secondary hidden" id="removeLowestQualifierBtn">Remove Lowest League Finisher</button>
         <button type="button" class="btn secondary hidden" id="editOverflowRulesBtn">Edit Qualification Rules</button>
         <button type="button" class="btn secondary" id="viewQualificationDetailsBtn">View Qualification Details</button>
+        <button type="button" class="btn secondary hidden" id="fusCalQualificationReport">Season Report</button>
         <button type="button" class="btn success" id="continueQualificationBtn">Continue</button>
       </div>
     </div>
@@ -14034,6 +14388,7 @@ body.player-calendar-advancing #playerNextMatchBtn{
 
     function baseCareerFields(name, controlledTeamId, sourceWorldId=null, sourceTeamId=null) {
       return {
+        fusClubCalendarArchive:[],
         id:uid(), mode:"club-career", name, createdAt:Date.now(), careerSeason:1,
         controlledTeamId, sourceWorldId, sourceTeamId, developmentPoints:0,
         developmentLedger:[], completedRewards:[], completedObjectives:[], failedObjectives:[], careerMilestones:[], records:[], permanentRivalId:null, careerSeasonHonours:{}, careerEliminationNotices:[], seasonStartYear:SEASON_START_YEAR,
@@ -14386,11 +14741,313 @@ body.player-calendar-advancing #playerNextMatchBtn{
       career.careerMilestones.push({season,type:"season",text:`${seasonDisplay(season)} completed${position?` with a league finish of #${position}`:""}.`});
     }
 
+    function fusClubCalendarButtonHtml(world){
+      const lastSeason=Number(world.worldSeason||1)-1;
+      const hasLast=Array.isArray(world.fusClubCalendarArchive)&&world.fusClubCalendarArchive.some(entry=>entry?.season===lastSeason);
+      return '<button type="button" class="btn secondary small" id="fusClubCalendarBtn">Match Calendar &amp; Season Report</button>'+
+        (hasLast?'<button type="button" class="btn secondary small" id="fusClubCalendarLastBtn">Last Season Report</button>':"");
+    }
+
+    function bindFusClubCalendarButtons(){
+      $("fusClubCalendarBtn")?.addEventListener("click",()=>openFusClubCalendar());
+      $("fusClubCalendarLastBtn")?.addEventListener("click",()=>openFusClubCalendar("report",Number(currentWorld()?.worldSeason||1)-1));
+    }
+
+    function fusClubCalendarDate(season,competition,stage,matchday,roundCount){
+      const year=SEASON_START_YEAR+season-1;
+      const round=Math.max(0,matchday-1);
+      const step=windowDays=>round*Math.min(14,windowDays/Math.max(1,roundCount-1));
+
+      if(competition.isWorldCup||competition.category==="world-cup"){
+        const worldCupDays={"Round of 16":15,"Quarterfinals":20,"Semifinals":25,"Final":34};
+        return playerModeDateKey(new Date(year+1,5,(worldCupDays[stage]||5)+Math.floor(round*3)));
+      }
+      if(stage==="League"&&competition.category==="league"){
+        return playerModeDateKey(new Date(year,7,16+Math.floor(step(275))));
+      }
+      if(stage==="League"||stage==="Groups"){
+        return playerModeDateKey(new Date(year,8,13+Math.floor(step(133))));
+      }
+      const knockoutDates={
+        "Round of 128":[year,8,23],
+        "Round of 64":[year,9,11],
+        "Round of 32":[year,10,1],
+        "Round of 16":[year+1,1,8],
+        "Quarterfinals":[year+1,2,14],
+        "Semifinals":[year+1,3,18],
+        "Final":[year+1,4,26]
+      };
+      const [fixtureYear,month,day]=knockoutDates[stage]||[year,9,18];
+      return playerModeDateKey(new Date(fixtureYear,month,day+Math.floor(round*5)));
+    }
+
+    function fusClubCalendarSeasonCompetitions(world,season,includeFixtures){
+      return (world.competitions||[])
+        .filter(comp=>Number(comp.season||world.worldSeason||1)===season)
+        .map(comp=>{
+          const activeStage=comp.stages?.[comp.currentStageIndex]||"Match";
+          const results=comp.results||[];
+          const plannedRoundCount=new Map();
+          results.forEach(round=>{
+            const stage=round.stage||activeStage;
+            plannedRoundCount.set(stage,Math.max(plannedRoundCount.get(stage)||0,Number(round.matchday)||1));
+          });
+          if(!comp.finished){
+            plannedRoundCount.set(activeStage,Math.max(plannedRoundCount.get(activeStage)||0,comp.fixtures?.length||0));
+          }
+
+          function readRound(stage,number,games,played){
+            const date=fusClubCalendarDate(season,comp,stage,number,plannedRoundCount.get(stage)||1);
+            return {
+              date,stage,number,played,
+              games:(Array.isArray(games)?games:[]).filter(game=>game?.homeId&&game?.awayId).map(game=>[
+                game.homeId,game.awayId,
+                played?Number(game.homeGoals||0):null,
+                played?Number(game.awayGoals||0):null,
+                game.penaltyWinnerId||null,
+                game.penaltyHomeGoals??null,
+                game.penaltyAwayGoals??null,
+                !!game.wentExtraTime
+              ])
+            };
+          }
+
+          const rounds=results.map((round,index)=>readRound(round.stage||activeStage,Number(round.matchday)||index+1,round.games,true));
+          if(includeFixtures&&!comp.finished){
+            (comp.fixtures||[]).forEach((games,index)=>{
+              if(index<Number(comp.currentMatchday||0)||!Array.isArray(games))return;
+              const pending=games.filter(game=>!game?.played);
+              if(pending.length)rounds.push(readRound(activeStage,index+1,pending,false));
+            });
+          }
+          return {name:comp.name||"Competition",rounds};
+        })
+        .filter(comp=>comp.rounds.length);
+    }
+
+    function fusClubCalendarArchiveSeason(world){
+      if(isPlayerMode(world))return;
+      const season=Number(world.worldSeason||1);
+      const competitions=fusClubCalendarSeasonCompetitions(world,season,false);
+      if(!competitions.length)return;
+      const teamNames=(world.teams||[]).map(team=>[team.id,team.name]);
+      const prior=Array.isArray(world.fusClubCalendarArchive)?world.fusClubCalendarArchive:[];
+      world.fusClubCalendarArchive=[
+        ...prior.filter(entry=>Number(entry?.season)!==season),
+        {season,teamNames,competitions}
+      ];
+    }
+
+    function fusClubCalendarMatches(competitions,teamId){
+      const matches=[];
+      for(const competition of competitions){
+        for(const round of competition.rounds){
+          for(const [homeId,awayId,homeGoals,awayGoals,penaltyWinner,penaltyHome,penaltyAway,extraTime] of round.games){
+            const home=homeId===teamId;
+            if(!home&&awayId!==teamId)continue;
+            const gf=home?homeGoals:awayGoals;
+            const ga=home?awayGoals:homeGoals;
+            const winner=penaltyWinner||(gf>ga?teamId:gf<ga?(home?awayId:homeId):null);
+            matches.push({
+              date:round.date,stage:round.stage,number:round.number,competition:competition.name,
+              opponentId:home?awayId:homeId,home,gf,ga,
+              outcome:round.played?(winner===teamId?"W":winner?"L":"D"):"",
+              pens:penaltyWinner?(penaltyHome!=null&&penaltyAway!=null?(home?penaltyHome+"–"+penaltyAway:penaltyAway+"–"+penaltyHome)+" pens":"Penalties"):"",
+              extraTime
+            });
+          }
+        }
+      }
+      return matches.sort((a,b)=>a.date.localeCompare(b.date)||a.competition.localeCompare(b.competition));
+    }
+
+    function fusClubCalendarRecord(matches){
+      const record={W:0,D:0,L:0,gf:0,ga:0,bestWin:0,bestUnbeaten:0,streak:0,last:""};
+      let wins=0,unbeaten=0;
+      for(const {outcome,gf,ga} of matches){
+        if(!outcome)continue;
+        record[outcome]++;
+        record.gf+=gf;
+        record.ga+=ga;
+        record.streak=outcome===record.last?record.streak+1:1;
+        record.last=outcome;
+        wins=outcome==="W"?wins+1:0;
+        unbeaten=outcome==="L"?0:unbeaten+1;
+        record.bestWin=Math.max(record.bestWin,wins);
+        record.bestUnbeaten=Math.max(record.bestUnbeaten,unbeaten);
+      }
+      return record;
+    }
+
+    function fusClubCalendarMatchList(world,matches,names){
+      const descriptions={W:"Win",D:"Draw",L:"Loss"};
+      return matches.length?matches.map(match=>{
+        const opponent=names.get(match.opponentId)||"Unknown club";
+        const score=match.outcome?match.gf+"–"+match.ga:"vs";
+        const date=playerModeDate(match.date).toLocaleDateString(undefined,{month:"short",day:"numeric"});
+        const resolution=match.pens||(match.extraTime?"AET":"");
+        return `<li class="fus-club-calendar-match">
+          ${playerModeCalendarTeamMark(world,match.opponentId)}
+          <div>
+            <strong>${escapeHtml(opponent)}</strong>
+            <small>${escapeHtml(date)} · ${match.home?"Home":"Away"} · ${escapeHtml(match.competition)} · ${escapeHtml(match.stage)}${["League","Groups"].includes(match.stage)?" "+match.number:""}</small>
+          </div>
+          <div class="fus-club-calendar-score" data-outcome="${match.outcome}">
+            <strong>${score}</strong>
+            <small>${escapeHtml(resolution||descriptions[match.outcome]||"Fixture")}</small>
+          </div>
+        </li>`;
+      }).join(""):"";
+    }
+
+    function openFusClubCalendar(initialView="calendar",initialSeason=null){
+      const world=currentWorld();
+      if(!world||isPlayerMode(world))return;
+      const dialog=$("fusClubCalendarDialog");
+      const content=$("fusClubCalendarContent");
+      const currentSeason=Number(world.worldSeason||1);
+      const archives=(Array.isArray(world.fusClubCalendarArchive)?world.fusClubCalendarArchive:[])
+        .filter(entry=>Number.isInteger(entry?.season)&&entry.season>=1&&entry.season<currentSeason&&Array.isArray(entry.competitions));
+      const seasons=[currentSeason,...new Set(archives.map(entry=>entry.season))].sort((a,b)=>b-a);
+      const teams=new Map((world.teams||[]).map(team=>[team.id,team.name]));
+      let season=seasons.includes(initialSeason)?initialSeason:currentSeason;
+      let teamId=world.controlledTeamId||teams.keys().next().value||"";
+      let month="",selectedDate="",view=initialView;
+      let matches=[],names=teams;
+
+      function seasonBounds(){
+        const year=SEASON_START_YEAR+season-1;
+        return {first:year+"-08",last:(year+1)+"-07"};
+      }
+
+      function resetCalendar(){
+        const archive=archives.find(entry=>entry.season===season);
+        names=new Map([...teams,...(archive&&Array.isArray(archive.teamNames)?archive.teamNames:[])]);
+        if(!names.has(teamId))teamId=names.keys().next().value||"";
+        const competitions=archive?.competitions||fusClubCalendarSeasonCompetitions(world,season,true);
+        matches=teamId?fusClubCalendarMatches(competitions,teamId):[];
+        const latest=[...matches].reverse().find(match=>match.outcome)||matches[0];
+        month=latest?latest.date.slice(0,7):seasonBounds().first;
+        selectedDate="";
+      }
+
+      function monthHtml(){
+        const {first,last}=seasonBounds();
+        const firstDay=playerModeDate(month+"-01");
+        const year=firstDay.getFullYear(),index=firstDay.getMonth();
+        const days=new Date(year,index+1,0).getDate();
+        const monthRows=matches.filter(match=>match.date.startsWith(month+"-"));
+        const counts=new Map();
+        monthRows.forEach(match=>{
+          if(!counts.has(match.date))counts.set(match.date,[]);
+          counts.get(match.date).push(match);
+        });
+        const cells=Array.from({length:firstDay.getDay()},()=>'<span class="fus-club-calendar-empty" aria-hidden="true"></span>');
+        for(let day=1;day<=days;day++){
+          const date=month+"-"+String(day).padStart(2,"0");
+          const events=counts.get(date)||[];
+          const count=events.length;
+          const event=events[0];
+          const tag=count>1?count+" matches":event?.outcome||"Fixture";
+          cells.push(count?
+            `<button type="button" class="player-day fus-club-calendar-day" id="fusCalDay${day}" data-cal-date="${date}" data-outcome="${event.outcome}" aria-pressed="${selectedDate===date}" aria-label="${escapeHtml(firstDay.toLocaleDateString(undefined,{month:"long"})+" "+day+", "+(count===1?"one match":count+" matches"))}"><span>${day}</span><small>${tag}</small></button>`
+            :`<span class="player-day fus-club-calendar-day"><span>${day}</span></span>`);
+        }
+        const displayed=selectedDate?monthRows.filter(row=>row.date===selectedDate):monthRows;
+        const label=selectedDate?playerModeDate(selectedDate).toLocaleDateString(undefined,{month:"long",day:"numeric"}):"Matches this month";
+        return `<div class="fus-club-calendar-month-nav">
+          <button type="button" class="btn secondary small" id="fusCalPrev" aria-label="Previous month" ${month<=first?"disabled":""}>←</button>
+          <h3>${escapeHtml(playerModeMonthLabel(month))}</h3>
+          <button type="button" class="btn secondary small" id="fusCalNext" aria-label="Next month" ${month>=last?"disabled":""}>→</button>
+        </div>
+        <div class="player-calendar-weekdays" aria-hidden="true">${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(day=>"<span>"+day+"</span>").join("")}</div>
+        <div class="player-calendar-grid fus-club-calendar-grid">${cells.join("")}</div>
+        <div class="fus-club-calendar-match-heading">
+          <h3>${escapeHtml(label)}</h3>
+          ${selectedDate?'<button type="button" class="btn secondary small" id="fusCalAll">Whole month</button>':""}
+        </div>
+        ${displayed.length?`<ul class="fus-club-calendar-list">${fusClubCalendarMatchList(world,displayed,names)}</ul>`:'<p class="muted">No matches this month.</p>'}
+        <p class="muted fus-club-calendar-note">Dates follow the simulated season schedule. Upcoming rounds appear as the competition advances.</p>`;
+      }
+
+      function reportHtml(){
+        const played=matches.filter(match=>match.outcome);
+        if(!played.length)return '<p class="notice">Play a match to start this club’s season report.</p>';
+        const record=fusClubCalendarRecord(played);
+        const outcomeLabels={W:["win","wins"],D:["draw","draws"],L:["loss","losses"]};
+        const streak=record.streak+" "+outcomeLabels[record.last][Number(record.streak!==1)];
+        const monthGroups=new Map();
+        for(const match of played){
+          const key=match.date.slice(0,7);
+          if(!monthGroups.has(key))monthGroups.set(key,[]);
+          monthGroups.get(key).push(match);
+        }
+        const metrics=[
+          ["Played",played.length],["Wins",record.W],["Draws",record.D],["Losses",record.L],
+          ["Goals for",record.gf],["Goals against",record.ga],
+          ["Current streak",streak],["Best winning run",record.bestWin],
+          ["Best unbeaten run",record.bestUnbeaten]
+        ];
+        return `<div class="fus-club-calendar-metrics">${metrics.map(([label,value])=>`<div><small>${label}</small><strong>${value}</strong></div>`).join("")}</div>
+          <h3>Monthly Results</h3>
+          <div class="fus-club-calendar-months">${[...monthGroups].reverse().map(([key,rows])=>{
+            const monthRecord=fusClubCalendarRecord(rows);
+            return `<details>
+              <summary><strong>${escapeHtml(playerModeMonthLabel(key))}</strong><span>${monthRecord.W} W · ${monthRecord.D} D · ${monthRecord.L} L</span></summary>
+              <ul class="fus-club-calendar-list">${fusClubCalendarMatchList(world,rows,names)}</ul>
+            </details>`;
+          }).join("")}</div>`;
+      }
+
+      function render(focusId){
+        const clubOptions=[...names].sort((a,b)=>String(a[1]).localeCompare(String(b[1])));
+        content.innerHTML=`<div class="fus-club-calendar-filters">
+          <label>Club<select id="fusCalClub" ${clubOptions.length?"":"disabled"}>${clubOptions.map(([id,name])=>`<option value="${escapeHtml(id)}" ${id===teamId?"selected":""}>${escapeHtml(name)}</option>`).join("")||'<option>No clubs</option>'}</select></label>
+          <label>Season<select id="fusCalSeason">${seasons.map(value=>`<option value="${value}" ${value===season?"selected":""}>${escapeHtml(seasonDisplay(value))}</option>`).join("")}</select></label>
+        </div>
+        <div class="fus-club-calendar-switch">
+          <button type="button" id="fusCalCalendar" class="btn ${view==="calendar"?"":"secondary"}" aria-pressed="${view==="calendar"}">Calendar</button>
+          <button type="button" id="fusCalReport" class="btn ${view==="report"?"":"secondary"}" aria-pressed="${view==="report"}">Season Report</button>
+        </div>
+        ${!teamId?'<p class="notice">Add clubs before viewing their matches.</p>':view==="calendar"?monthHtml():reportHtml()}`;
+
+        $("fusCalClub").onchange=event=>{teamId=event.target.value;resetCalendar();render("fusCalClub")};
+        $("fusCalSeason").onchange=event=>{season=Number(event.target.value);resetCalendar();render("fusCalSeason")};
+        $("fusCalCalendar").onclick=()=>{view="calendar";render("fusCalCalendar")};
+        $("fusCalReport").onclick=()=>{view="report";render("fusCalReport")};
+        function moveMonth(direction,id){
+          const date=playerModeDate(month+"-01");
+          date.setMonth(date.getMonth()+direction);
+          month=playerModeDateKey(date).slice(0,7);
+          selectedDate="";
+          render(id);
+        }
+        $("fusCalPrev")?.addEventListener("click",()=>moveMonth(-1,"fusCalPrev"));
+        $("fusCalNext")?.addEventListener("click",()=>moveMonth(1,"fusCalNext"));
+        $("fusCalAll")?.addEventListener("click",()=>{
+          const dayId="fusCalDay"+Number(selectedDate.slice(-2));
+          selectedDate="";
+          render(dayId);
+        });
+        content.querySelectorAll("[data-cal-date]").forEach(button=>button.onclick=()=>{
+          selectedDate=selectedDate===button.dataset.calDate?"":button.dataset.calDate;
+          render(button.id);
+        });
+        if(focusId)($(focusId)?.disabled?$("fusCalCalendar"):$(focusId))?.focus({preventScroll:true});
+      }
+
+      resetCalendar();
+      render();
+      dialog.showModal();
+      dialog.scrollTop=0;
+    }
+
     function renderCareerDashboard() {
       const career=currentCareerSave(),team=controlledCareerTeam(career);if(!career)return;if(!team){$("tab-dashboard").innerHTML=`<section class="card"><div class="startup-kicker">${escapeHtml(seasonDisplay(career.worldSeason||1))}</div><h1>Choose Your Club</h1><p class="muted">This career world is valid with zero teams and no controlled club. Add, import, or load starter teams, then choose the club you want to control.</p><button class="btn" id="dashboardTeamSetupBtn">Open Teams</button></section>`;$("dashboardTeamSetupBtn")?.addEventListener("click",()=>switchTab("teams"));return}const rank=careerRank(career),position=careerLeaguePosition(career);const regular=regularCompetitions(career);const active=regular.filter(c=>!c.finished);const form=career.competitions.flatMap(c=>c.table?.[team.id]?.form||[]).slice(-5);const recent=[];career.competitions.forEach(c=>(c.results||[]).forEach(r=>(r.games||[]).forEach(g=>{if(g.homeId===team.id||g.awayId===team.id)recent.push({...g,competition:c.name})})));const nextAction=allRegularCompetitionsFinished(career)?`Start ${seasonDisplay(career.careerSeason+1)}`:active.length?`Continue ${active[0].name}`:"Review your club";const scenarioCard=isFallenGiantScenario(career)?fallenGiantDashboardHtml(career):"";const managerCard=isManagerMode(career)?managerDashboardHtml(career):"";
       const formHtml=form.length?`<div class="career-form">${form.map(v=>`<span class="${v>0?"win":v<0?"loss":"draw"}">${v>0?"W":v<0?"L":"D"}</span>`).join("")}</div>`:`<p class="muted">No matches yet</p>`;
-      $("tab-dashboard").innerHTML=`<section class="career-hero">${teamLogo(team)}<div><div class="startup-kicker">YOUR CLUB</div><h1>${escapeHtml(team.name)}</h1><div class="toolbar"><span class="badge">World Rank ${rank?`#${rank}`:"—"}</span><span class="badge">${escapeHtml(seasonDisplay(career.careerSeason))}</span></div></div><div><div class="muted">CLUB OVERALL</div><div class="career-overall">${team.strength}</div></div></section>${scenarioCard}${managerCard}<div class="career-dashboard-grid"><article class="card"><div class="startup-kicker">LEAGUE POSITION</div><div class="career-stat-number">${position?`#${position}`:"—"}</div><p class="muted">${position?"Current league standing":"Season not started"}</p></article><article class="card"><div class="startup-kicker">WORLD CUP QUALIFICATION</div><div class="career-stat-number">${rank&&rank<=16?`#${rank}`:"OUT"}</div><p class="muted">${rank&&rank<=16?"Currently qualifying":"Outside qualification places"}</p></article><article class="card"><div class="startup-kicker">${isManagerMode(career)?"SQUAD VALUE":isActiveFallenGiantScenario(career)?"SCENARIO DEVELOPMENT":"DEVELOPMENT POINTS"}</div><div class="career-stat-number">${isManagerMode(career)?money((controlledCareerTeam(career)?.managerSquad||[]).reduce((s,p)=>s+p.marketValue,0)):isActiveFallenGiantScenario(career)?"LOCKED":career.developmentPoints}</div><p class="muted">${isManagerMode(career)?"Your starting XI determines club overall":isActiveFallenGiantScenario(career)?"Overall changes only through performance":"Every earning is listed in Club Development"}</p></article><article class="card career-objective"><div class="startup-kicker">CURRENT SEASON OBJECTIVE</div><h2>${escapeHtml(career.seasonObjective?.text||"Build your club")}</h2><p class="muted">${isManagerMode(career)?"Board target · prize money and results grow your budget":`Reward: ${career.seasonObjective?.reward||0} development points`}</p></article><article class="card"><div class="startup-kicker">RECENT FORM</div>${formHtml}</article><article class="card"><h2>Season Status</h2><p><strong>Champions League:</strong> ${rank&&rank<=24?"Qualification position":"Outside qualification"}</p><p><strong>Career trophies:</strong> ${career.careerStats.leagueTitles+career.careerStats.championsLeagueTitles+career.careerStats.cupTitles+career.careerStats.worldCupTitles}</p></article><article class="card"><h2>Active Competitions</h2>${active.length?active.map(c=>`<div class="stage"><strong>${escapeHtml(c.name)}</strong><div class="muted">${c.stages?.[c.currentStageIndex]||"In progress"}</div></div>`).join(""):`<p class="muted">All competitions completed.</p>`}</article><article class="card"><h2>Recent Results</h2>${recent.slice(-5).reverse().map(g=>`<div class="stage"><strong>${escapeHtml(teamName(g.homeId))} ${g.homeGoals}–${g.awayGoals} ${escapeHtml(teamName(g.awayId))}</strong>${career.permanentRivalId&&(g.homeId===career.permanentRivalId||g.awayId===career.permanentRivalId)?` <span class="rival-match-label">🔥 Rival Match</span>`:""}<div class="muted">${escapeHtml(g.competition)}</div></div>`).join("")||`<p class="muted">No results yet.</p>`}</article><article class="card"><div class="startup-kicker">NEXT ACTION</div><h2>${escapeHtml(nextAction)}</h2><button class="btn" id="careerNextActionBtn">Go to Competitions</button></article></div>`;
+      $("tab-dashboard").innerHTML=`<section class="career-hero">${teamLogo(team)}<div><div class="startup-kicker">YOUR CLUB</div><h1>${escapeHtml(team.name)}</h1><div class="toolbar"><span class="badge">World Rank ${rank?`#${rank}`:"—"}</span><span class="badge">${escapeHtml(seasonDisplay(career.careerSeason))}</span></div></div><div><div class="muted">CLUB OVERALL</div><div class="career-overall">${team.strength}</div></div></section>${scenarioCard}${managerCard}<div class="career-dashboard-grid"><article class="card"><div class="startup-kicker">LEAGUE POSITION</div><div class="career-stat-number">${position?`#${position}`:"—"}</div><p class="muted">${position?"Current league standing":"Season not started"}</p></article><article class="card"><div class="startup-kicker">WORLD CUP QUALIFICATION</div><div class="career-stat-number">${rank&&rank<=16?`#${rank}`:"OUT"}</div><p class="muted">${rank&&rank<=16?"Currently qualifying":"Outside qualification places"}</p></article><article class="card"><div class="startup-kicker">${isManagerMode(career)?"SQUAD VALUE":isActiveFallenGiantScenario(career)?"SCENARIO DEVELOPMENT":"DEVELOPMENT POINTS"}</div><div class="career-stat-number">${isManagerMode(career)?money((controlledCareerTeam(career)?.managerSquad||[]).reduce((s,p)=>s+p.marketValue,0)):isActiveFallenGiantScenario(career)?"LOCKED":career.developmentPoints}</div><p class="muted">${isManagerMode(career)?"Your starting XI determines club overall":isActiveFallenGiantScenario(career)?"Overall changes only through performance":"Every earning is listed in Club Development"}</p></article><article class="card career-objective"><div class="startup-kicker">CURRENT SEASON OBJECTIVE</div><h2>${escapeHtml(career.seasonObjective?.text||"Build your club")}</h2><p class="muted">${isManagerMode(career)?"Board target · prize money and results grow your budget":`Reward: ${career.seasonObjective?.reward||0} development points`}</p></article><article class="card fus-form-entry"><div class="startup-kicker">RECENT FORM</div>${formHtml}${isPlayerMode(career)?"":fusClubCalendarButtonHtml(career)}</article><article class="card"><h2>Season Status</h2><p><strong>Champions League:</strong> ${rank&&rank<=24?"Qualification position":"Outside qualification"}</p><p><strong>Career trophies:</strong> ${career.careerStats.leagueTitles+career.careerStats.championsLeagueTitles+career.careerStats.cupTitles+career.careerStats.worldCupTitles}</p></article><article class="card"><h2>Active Competitions</h2>${active.length?active.map(c=>`<div class="stage"><strong>${escapeHtml(c.name)}</strong><div class="muted">${c.stages?.[c.currentStageIndex]||"In progress"}</div></div>`).join(""):`<p class="muted">All competitions completed.</p>`}</article><article class="card"><h2>Recent Results</h2>${recent.slice(-5).reverse().map(g=>`<div class="stage"><strong>${escapeHtml(teamName(g.homeId))} ${g.homeGoals}–${g.awayGoals} ${escapeHtml(teamName(g.awayId))}</strong>${career.permanentRivalId&&(g.homeId===career.permanentRivalId||g.awayId===career.permanentRivalId)?` <span class="rival-match-label">🔥 Rival Match</span>`:""}<div class="muted">${escapeHtml(g.competition)}</div></div>`).join("")||`<p class="muted">No results yet.</p>`}</article><article class="card"><div class="startup-kicker">NEXT ACTION</div><h2>${escapeHtml(nextAction)}</h2><button class="btn" id="careerNextActionBtn">Go to Competitions</button></article></div>`;
       $("careerNextActionBtn")?.addEventListener("click",()=>switchTab("competitions"));
+      bindFusClubCalendarButtons();
       document.querySelectorAll("[data-manager-dashboard-tab]").forEach(button=>button.addEventListener("click",()=>switchTab(button.dataset.managerDashboardTab)));
     }
 
@@ -19744,7 +20401,7 @@ function playerModeOpenMatch(compId,key,date){
       const preferred=(slot?.preferred||[]).map(pos=>String(pos).toUpperCase());
       const overall=Number(player?.overall||0);
       const primary=preferred[0]||String(slot?.label||"").toUpperCase();
-      const prefIndex=preferred.indexOf(position);
+      const penalty=managerFormationPositionPenalty(player,slot);
 
       // HARD GK LOCK.
       // A GK slot can ONLY contain a player whose actual position is GK.
@@ -19760,8 +20417,8 @@ function playerModeOpenMatch(compId,key,date){
 
       // A listed secondary position is allowed, but an actual natural-position
       // player will always beat an out-of-position alternative.
-      if(prefIndex>=0){
-        return 50000-(prefIndex*5000)+overall;
+      if(preferred.includes(position)||penalty<=6){
+        return 50000-penalty*100+overall;
       }
 
       if(phase!=="emergency")return -Infinity;
@@ -19859,7 +20516,8 @@ function playerModeBuildFormationXI(career,club,options={}){
       const placed=[];
       const remainingSlots=[...slots];
 
-      const place=(slot,player,outOfPosition=false)=>{
+      const place=(slot,player)=>{
+        const outOfPosition=managerFormationPositionPenalty(player,slot)>0;
         placed.push({player,slot,outOfPosition});
         const slotIndex=remainingSlots.indexOf(slot);
         if(slotIndex>=0)remainingSlots.splice(slotIndex,1);
@@ -19875,13 +20533,13 @@ function playerModeBuildFormationXI(career,club,options={}){
           const compatible=remainingSlots
             .map(slot=>({
               slot,
-              index:(slot.preferred||[]).indexOf(forced.position)
+              penalty:managerFormationPositionPenalty(forced,slot)
             }))
-            .filter(row=>row.index>=0)
-            .sort((a,b)=>a.index-b.index);
+            .filter(row=>row.penalty<=7)
+            .sort((a,b)=>a.penalty-b.penalty);
 
           if(compatible.length){
-            place(compatible[0].slot,forced,compatible[0].index>0);
+            place(compatible[0].slot,forced);
           }
         }
       }
@@ -19899,7 +20557,7 @@ function playerModeBuildFormationXI(career,club,options={}){
           .sort((a,b)=>b.score-a.score);
 
         if(candidates.length){
-          place(slot,candidates[0].player,false);
+          place(slot,candidates[0].player);
         }
       }
 
@@ -19908,14 +20566,13 @@ function playerModeBuildFormationXI(career,club,options={}){
         const candidates=pool
           .map(player=>({
             player,
-            score:playerModeFormationFitScore(player,slot,"preferred"),
-            prefIndex:(slot.preferred||[]).indexOf(player.position)
+            score:playerModeFormationFitScore(player,slot,"preferred")
           }))
           .filter(row=>Number.isFinite(row.score))
           .sort((a,b)=>b.score-a.score);
 
         if(candidates.length){
-          place(slot,candidates[0].player,candidates[0].prefIndex>0);
+          place(slot,candidates[0].player);
         }
       }
 
@@ -19931,7 +20588,7 @@ function playerModeBuildFormationXI(career,club,options={}){
           .sort((a,b)=>b.score-a.score);
 
         if(candidates.length){
-          place(slot,candidates[0].player,true);
+          place(slot,candidates[0].player);
         }
       }
 
@@ -22530,22 +23187,74 @@ function managerGeneratePlayer(teamStrength,position,index,teamId){
       return managerFormationDefinitions()[formation]?.slots || managerFormationDefinitions()["4-2-3-1"].slots;
     }
 
-    function managerFormationFitScore(player,slot){
-      let score=0;
-      const prefIndex=slot.preferred.indexOf(player.position);
-      if(prefIndex>=0){
-        score=100-prefIndex*12;
-      }else{
-        const attack=["ST","LW","RW","CAM"];
-        const midfield=["CAM","CM"];
-        const defense=["LB","RB","CB"];
-        if(player.position==="GK"||slot.label==="GK")score=-120;
-        else if(slot.preferred.some(pos=>attack.includes(pos))&&attack.includes(player.position))score=55;
-        else if(slot.preferred.some(pos=>midfield.includes(pos))&&midfield.includes(player.position))score=55;
-        else if(slot.preferred.some(pos=>defense.includes(pos))&&defense.includes(player.position))score=55;
-        else score=8;
+    function managerFormationSlotPosition(slot){
+      return slot?.label==="AM" ? "CAM" : slot?.label || slot?.preferred?.[0] || "";
+    }
+
+    function managerFormationPositionPenalty(player,slot){
+      const position=player?.position==="CF" ? "ST" : player?.position;
+      const role=managerFormationSlotPosition(slot);
+      if(!position||!role||position===role)return 0;
+      if(position==="GK"||role==="GK")return 45;
+
+      const wideAttack=["LW","RW","LM","RM"];
+      const midfield=["CM","CAM","CDM","LM","RM"];
+      const fullbacks=["LB","RB","LWB","RWB"];
+      const attack=["ST","LW","RW"];
+      const defense=["CB",...fullbacks];
+
+      if(wideAttack.includes(position)&&wideAttack.includes(role)){
+        return position[0]===role[0] ? 1 : 2;
       }
-      return score+Number(player.overall||0)*.55;
+      if((position==="ST"&&wideAttack.includes(role))||
+         (role==="ST"&&wideAttack.includes(position)))return 4;
+      if(midfield.includes(position)&&midfield.includes(role)){
+        return position==="CM"||role==="CM" ? 2 : 4;
+      }
+      if((position==="CAM"&&attack.includes(role))||
+         (role==="CAM"&&attack.includes(position)))return 6;
+      if(fullbacks.includes(position)&&fullbacks.includes(role)){
+        return position[0]===role[0] ? 1 : 3;
+      }
+      if(defense.includes(position)&&defense.includes(role))return 5;
+      if([position,role].includes("CB")&&[position,role].includes("CDM"))return 6;
+      if(slot.preferred?.includes(position))return 7;
+      if((attack.includes(position)&&defense.includes(role))||
+         (defense.includes(position)&&attack.includes(role)))return 18;
+      return 11;
+    }
+
+    function managerFormationFitScore(player,slot){
+      return Number(player?.overall||0)-managerFormationPositionPenalty(player,slot)*1.3;
+    }
+
+    function managerMatchSlotsByPlayer(team,career,assignments){
+      const slotsByPlayer=new Map();
+      if(!team||!isManagerMode(career)||isPlayerMode(career)||team.id!==career.controlledTeamId){
+        return slotsByPlayer;
+      }
+
+      const formation=managerCurrentFormation(career);
+      const lineup=assignments||career.manager?.formationAssignments?.[formation]||
+        managerAutoFormationAssignments(team,formation);
+      for(const slot of managerFormationSlots(formation)){
+        const playerId=lineup[slot.key];
+        if(playerId)slotsByPlayer.set(playerId,slot);
+      }
+      return slotsByPlayer;
+    }
+
+    function managerMatchLineupEffects(team,career=currentCareerSave(),assignments){
+      const slotsByPlayer=managerMatchSlotsByPlayer(team,career,assignments);
+      let ratingPenalty=0;
+      let keeperRisk=0;
+      for(const player of team?.managerSquad||[]){
+        const slot=slotsByPlayer.get(player.id);
+        if(!slot)continue;
+        ratingPenalty+=managerFormationPositionPenalty(player,slot);
+        if(managerFormationSlotPosition(slot)==="GK"&&player.position!=="GK")keeperRisk=4.5;
+      }
+      return {ratingPenalty:ratingPenalty/11,keeperRisk};
     }
 
     function managerAutoFormationAssignments(team,formation=managerCurrentFormation()){
@@ -22650,10 +23359,12 @@ function managerGeneratePlayer(teamStrength,position,index,teamId){
       managerFormationSlots(formation).forEach(slot=>{
         const player=byId.get(assignments[slot.key]);
         if(!player)return;
+        const positionPenalty=managerFormationPositionPenalty(player,slot);
         placed.push({
           player,
           slot,
-          outOfPosition:!slot.preferred.includes(player.position)
+          positionPenalty,
+          outOfPosition:positionPenalty>0
         });
       });
 
@@ -22744,6 +23455,7 @@ function managerGeneratePlayer(teamStrength,position,index,teamId){
             <div class="manager-info-stat"><small>Status</small><strong>${player.isStarter?"Starting XI":"Substitute"}${player.wantsOut?" ⚠️":""}</strong></div>
             <div class="manager-info-stat"><small>Season Goals</small><strong>${player.goalsSeason||0}</strong></div>
             <div class="manager-info-stat"><small>Appearances</small><strong>${player.appearancesSeason||0}</strong></div>
+            ${player.minutesSeason!==undefined?`<div class="manager-info-stat"><small>Minutes tracked</small><strong>${player.minutesSeason}</strong></div>`:""}
             <div class="manager-info-stat"><small>Retirement</small><strong>${managerRetirementYearsLeft(player)<=2?`⚠️ ${managerRetirementYearsLeft(player)} yr${managerRetirementYearsLeft(player)===1?"":"s"}`:`Age ${managerAssignRetirementPlan(player)}`}</strong></div>
           </div>
 
@@ -22789,11 +23501,11 @@ function managerGeneratePlayer(teamStrength,position,index,teamId){
           <div>
             <div class="startup-kicker">👥 TEAM MANAGEMENT</div>
             <h1>${escapeHtml(team.name)}</h1>
-            <p class="muted">Your Starting XI directly determines your club overall.</p>
+            <p class="muted">Playing in a different position can lower a player’s match rating.</p>
           </div>
           <div>
-            <div class="muted">TEAM OVR</div>
-            <div class="career-overall">${team.strength}</div>
+            <div class="muted">MATCH OVR</div>
+            <div class="career-overall">${Math.max(1,Math.round(team.strength-managerMatchLineupEffects(team,career).ratingPenalty))}</div>
           </div>
         </section>
 
@@ -22832,23 +23544,23 @@ function managerGeneratePlayer(teamStrength,position,index,teamId){
                   <span class="center-dot"></span>
                 </div>
 
-                ${placed.map(({player,slot,outOfPosition})=>`
+                ${placed.map(({player,slot,outOfPosition,positionPenalty})=>`
                   <button
                     type="button"
                     class="manager-pitch-player ${player.id===selected?.id?"selected":""} ${outOfPosition?"out-of-position":""} ${player.id===managerSwapSourcePlayerId?"swap-source":managerSwapSourcePlayerId?"swap-target":""}"
                     data-manager-select-player="${player.id}"
                     style="left:${slot.x}%;top:${slot.y}%"
-                    title="${escapeHtml(player.name)} · ${player.position} · ${player.overall} OVR"
+                    title="${escapeHtml(player.name)} · ${player.position} · ${player.overall} OVR${outOfPosition?` · ${slot.label} match rating: ${Math.max(1,player.overall-positionPenalty)}`:""}"
                   >
                     <span class="manager-player-disc ${managerPlayerPhoto(player)?"has-photo":""}">
                       <span class="pitch-pos">${escapeHtml(player.position)}</span>
                       ${managerPlayerFaceHtml(player,"pitch")}
-                      <span class="pitch-ovr">${player.overall}</span>
+                      <span class="pitch-ovr">${Math.max(1,player.overall-positionPenalty)}</span>
                     </span>
                     <span class="manager-pitch-name">${escapeHtml(player.name)}</span>
                     <span class="manager-pitch-subline">
                       <span>${Math.round(player.morale||70)>=75?"😊":Math.round(player.morale||70)<50?"😕":"●"}</span>
-                      ${outOfPosition?`<span style="color:#fbbf24">Out of pos.</span>`:`<span>${slot.label}</span>`}
+                      <span${outOfPosition?' style="color:#fbbf24"':""}>${slot.label}${outOfPosition?` −${positionPenalty}`:""}</span>
                     </span>
                   </button>`).join("")}
               </div>
@@ -22943,6 +23655,7 @@ function managerGeneratePlayer(teamStrength,position,index,teamId){
         career.manager.formation=event.target.value;
         managerSwapSourcePlayerId=null;
         managerEnsureFormationAssignments(career,team,event.target.value);
+        managerRecalculateTeam(team);
         saveData(`Formation changed to ${event.target.value}`);
         renderManagerSquad();
       });
@@ -25215,7 +25928,14 @@ function managerGeneratePlayer(teamStrength,position,index,teamId){
       const squad=managerSquad(teamId,career),
         pool=squad.filter(p=>p.isStarter).length?squad.filter(p=>p.isStarter):squad;
       if(!pool.length)return null;
-      const weight=p=>({ST:6,RW:4.2,LW:4.2,CAM:3.2,CM:1.8,RB:.7,LB:.7,CB:.45,GK:.03}[p.position]||1)*(.8+p.overall/100);
+      const slotsByPlayer=managerMatchSlotsByPlayer(managerTeam(teamId,career),career);
+      const weight=p=>{
+        const slot=slotsByPlayer.get(p.id);
+        const role=managerFormationSlotPosition(slot)||p.position;
+        const penalty=managerFormationPositionPenalty(p,slot);
+        const base={ST:6,RW:4.2,LW:4.2,RM:3.3,LM:3.3,CAM:3.2,CM:1.8,RB:.7,LB:.7,CB:.45,GK:.03}[role]||1;
+        return base*(.8+Math.max(1,p.overall-penalty)/100)*Math.max(.08,1-penalty/52);
+      };
       const total=pool.reduce((s,p)=>s+weight(p),0);
       let roll=Math.random()*total;
       for(const p of pool){roll-=weight(p);if(roll<=0)return p}
@@ -25227,7 +25947,14 @@ function managerGeneratePlayer(teamStrength,position,index,teamId){
         starters=squad.filter(p=>p.isStarter).length?squad.filter(p=>p.isStarter):squad,
         pool=starters.filter(p=>p.id!==scorerId);
       if(!pool.length)return null;
-      const weight=p=>({CAM:6,RW:5,LW:5,CM:4,ST:2.8,RB:1.4,LB:1.4,CB:.65,GK:.08}[p.position]||1)*(0.75+p.overall/105);
+      const slotsByPlayer=managerMatchSlotsByPlayer(managerTeam(teamId,career),career);
+      const weight=p=>{
+        const slot=slotsByPlayer.get(p.id);
+        const role=managerFormationSlotPosition(slot)||p.position;
+        const penalty=managerFormationPositionPenalty(p,slot);
+        const base={CAM:6,RW:5,LW:5,RM:4.5,LM:4.5,CM:4,ST:2.8,RB:1.4,LB:1.4,CB:.65,GK:.08}[role]||1;
+        return base*(.75+Math.max(1,p.overall-penalty)/105)*Math.max(.08,1-penalty/52);
+      };
       const total=pool.reduce((s,p)=>s+weight(p),0);
       let roll=Math.random()*total;
       for(const p of pool){roll-=weight(p);if(roll<=0)return p}
@@ -25362,7 +26089,7 @@ function managerGeneratePlayer(teamStrength,position,index,teamId){
         </div>`;
     }
 
-    function managerRecordMatchPlayerStats(comp,game,hg,ag,forcedScorers=null,forcedGoalEvents=null){
+    function managerRecordMatchPlayerStats(comp,game,hg,ag,forcedScorers=null,forcedGoalEvents=null,managerLineup=null){
       const career=currentCareerSave();
       if(!isManagerMode(career))return;
       const compBook=managerCompetitionStatBook(career,comp);
@@ -25383,7 +26110,11 @@ function managerGeneratePlayer(teamStrength,position,index,teamId){
           stats.maxTeamGoalsOpponent=teamName(oppId);
         }
 
-        starters.forEach(p=>{
+        const livePlayers=managerLineup?.teamId===teamId
+          ? managerLineup.players.map(row=>({p:managerPlayerById(row.id,career),minutes:row.minutes})).filter(row=>row.p&&row.minutes>0)
+          : null;
+        const players=livePlayers||starters.map(p=>({p,minutes:Number(game.matchMinutes||90)}));
+        players.forEach(({p,minutes})=>{
           p.appearancesSeason=(p.appearancesSeason||0)+1;
           p.appearancesCareer=(p.appearancesCareer||0)+1;
           stats.playerAppearances[p.id]=(stats.playerAppearances[p.id]||0)+1;
@@ -25398,6 +26129,17 @@ function managerGeneratePlayer(teamStrength,position,index,teamId){
           totals[p.id].assists=Number(totals[p.id].assists||0);
           totals[p.id].honours=Array.isArray(totals[p.id].honours)?totals[p.id].honours:[];
           totals[p.id].appearances++;
+          if(!isPlayerMode(career)){
+            p.minutesSeason=Number(p.minutesSeason||0)+minutes;
+            p.minutesCareer=Number(p.minutesCareer||0)+minutes;
+            totals[p.id].minutes=Number(totals[p.id].minutes||0)+minutes;
+            stats.playerMinutes=stats.playerMinutes||{};
+            stats.playerMinutes[p.id]=Number(stats.playerMinutes[p.id]||0)+minutes;
+            if(compBook){
+              compBook.playerMinutes=compBook.playerMinutes||{};
+              compBook.playerMinutes[p.id]=Number(compBook.playerMinutes[p.id]||0)+minutes;
+            }
+          }
         });
 
         const sideKey=sideIndex===0?"home":"away";
@@ -25430,9 +26172,13 @@ function managerGeneratePlayer(teamStrength,position,index,teamId){
 
           perGameGoals[id]=(perGameGoals[id]||0)+1;
 
-          // Most goals in modern football are assisted, but not every goal is.
-          if(Math.random()<.84){
-            let assister=managerPickAssister(teamId,id,career);
+          // A watched Manager goal already has an assist decision based on the live XI.
+          const liveGoal=sideGoalEvents[goalIndex];
+          const hasLiveAssist=livePlayers&&liveGoal&&Object.prototype.hasOwnProperty.call(liveGoal,"assisterId");
+          if(hasLiveAssist ? liveGoal.assisterId : Math.random()<.84){
+            let assister=hasLiveAssist
+              ? managerPlayerById(liveGoal.assisterId,career)
+              : managerPickAssister(teamId,id,career);
 
             // For a watched Player Career match we know the actual goal minute.
             // Do not award the controlled player an assist if they were already
@@ -26667,6 +27413,7 @@ function managerGeneratePlayer(teamStrength,position,index,teamId){
         p.goalsSeason=0;
         p.assistsSeason=0;
         p.appearancesSeason=0;
+        if(p.minutesSeason!==undefined)p.minutesSeason=0;
         p.marketValue=managerPlayerValue(p);
       }));
 
@@ -27401,6 +28148,7 @@ function managerGeneratePlayer(teamStrength,position,index,teamId){
               </button>
             ` : ""}
             <button type="button" class="btn secondary" id="loadCompetitionsFromSaveDashboardBtn">Import Competitions</button>
+            ${fusClubCalendarButtonHtml(world)}
           </div>
         </section>
 
@@ -27441,6 +28189,7 @@ function managerGeneratePlayer(teamStrength,position,index,teamId){
 
       $("startGlobalSeasonBtn")?.addEventListener("click", startGlobalNextSeason);
       $("loadCompetitionsFromSaveDashboardBtn")?.addEventListener("click", openLoadCompetitionsDialog);
+      bindFusClubCalendarButtons();
       $("dashboardWorldCupCard")?.addEventListener("click", () => switchTab("world-cup-qualification"));
       bindNewsButtons($("tab-dashboard"));
     }
@@ -30188,11 +30937,14 @@ function managerGeneratePlayer(teamStrength,position,index,teamId){
 
       state.wentExtraTime=true;
       state.matchMinutes=120;
+      managerLiveRefresh(state);
       state.regulationHomeGoals=state.displayHomeGoals;
       state.regulationAwayGoals=state.displayAwayGoals;
 
       const comp=currentWorld()?.competitions?.find(c=>c.id===state.compId);
-      const [eth,eta]=simulateExtraTimeGoals(state.game.homeId,state.game.awayId,comp);
+      const [eth,eta]=state.managerLive
+        ? managerLiveExpectedGoals(state,30).map(poisson)
+        : simulateExtraTimeGoals(state.game.homeId,state.game.awayId,comp);
       const career=currentGameMode==="club-career"?currentCareerSave():null;
       const extraScorers=isManagerMode(career)
         ?{
@@ -30256,7 +31008,7 @@ function managerGeneratePlayer(teamStrength,position,index,teamId){
       }
 
       setTimeout(()=>{
-        if(!liveMatchState||liveMatchState.committed)return;
+        if(liveMatchState!==state||state.committed||state.managerLive?.choosing||liveMatchTimer)return;
         state.minute=90;
         liveMatchTimer=setInterval(tickLiveMatch,200);
       },650);
@@ -30280,6 +31032,10 @@ function managerGeneratePlayer(teamStrength,position,index,teamId){
       const team=managerTeam(teamId,career);
       if(!team)return [];
 
+      if(state.managerLive?.team.id===teamId){
+        return managerLiveActive(state.managerLive).map(({row})=>row.player)
+          .sort((a,b)=>livePenaltyPlayerRating(b,career)-livePenaltyPlayerRating(a,career));
+      }
       const userId=isPlayerMode(career)?playerModeData(career)?.playerId:null;
       const userTeam=career?.controlledTeamId===teamId;
       const userEligible=!!(userTeam&&state.playerCareer?.onPitch&&userId);
@@ -30352,11 +31108,15 @@ function managerGeneratePlayer(teamStrength,position,index,teamId){
 
       const rating=livePenaltyPlayerRating(kicker,career);
       const keeperTeam=managerTeam(side==="home"?state.game.awayId:state.game.homeId,career);
-      const keeper=(keeperTeam?.managerSquad||[])
-        .filter(player=>player.position==="GK")
-        .sort((a,b)=>Number(b.overall||0)-Number(a.overall||0))[0];
+      const manager=state.managerLive;
+      const keeper=manager && manager.team.id===keeperTeam?.id
+        ? managerLiveActive(manager).find(({slot})=>slot.label==="GK")?.row.player
+        : (keeperTeam?.managerSquad||[])
+          .filter(player=>player.position==="GK")
+          .sort((a,b)=>Number(b.overall||0)-Number(a.overall||0))[0];
 
-      const keeperRating=Number(keeper?.overall||70);
+      const keeperRating=manager && manager.team.id===keeperTeam?.id && keeper?.position!=="GK"
+        ? clamp(Number(keeper?.overall||70)-28,35,64) : Number(keeper?.overall||70);
       const zone=chosenZone||livePenaltyKeeperGuess();
       const keeperZone=livePenaltyKeeperGuess();
       const topCorner=zone==="top-left"||zone==="top-right";
@@ -30518,6 +31278,7 @@ function managerGeneratePlayer(teamStrength,position,index,teamId){
         timer:null
       };
 
+      managerLiveRefresh(state);
       $("liveMatchPhase").textContent="PENALTIES";
       $("liveMatchPhase").classList.remove("extra-time");
       $("liveMatchPhase").classList.add("penalties");
@@ -30826,6 +31587,8 @@ function finishLiveMatchAnimation() {
       $("liveShotChallenge")?.classList.add("hidden");
 
       const state=liveMatchState;
+      state.finishing=true;
+      managerLiveRefresh(state);
       const endMinute=state.wentExtraTime?120:90;
       state.minute=endMinute;
       state.matchMinutes=endMinute;
@@ -30878,7 +31641,8 @@ function finishLiveMatchAnimation() {
         .map(event=>({
           minute:Number(event.minute||0),
           side:event.side,
-          scorerId:event.scorerId||null
+          scorerId:event.scorerId||null,
+          ...(Object.prototype.hasOwnProperty.call(event,"assisterId") ? {assisterId:event.assisterId} : {})
         }));
 
       const forcedResults={
@@ -30889,6 +31653,7 @@ function finishLiveMatchAnimation() {
           regulationAwayGoals:Number(state.regulationAwayGoals??state.finalAwayGoals),
           scorerIds:state.scorerIds,
           goalEvents:forcedGoalEvents,
+          managerLineup:managerLiveResult(state),
           watchedLive:true,
           wentExtraTime:!!state.wentExtraTime,
           matchMinutes:endMinute,
@@ -30930,6 +31695,7 @@ function finishLiveMatchAnimation() {
       }
 
       state.committed=true;
+      managerLiveRenderResult(state);
       $("liveMatchFooterText").textContent=state.playerCareer
         ?"Full time. Review both teams' player ratings, then continue."
         :state.decidedBy==="penalties"
@@ -30972,7 +31738,22 @@ function finishLiveMatchAnimation() {
     }
     function applyLiveMatchDecision(mode){
       const state=liveMatchState,career=currentGameMode==='club-career'?currentCareerSave():null;
-      if(!state||!state.decisionPending)return;
+      if(!state||!state.decisionPending||state.managerLive?.choosing)return;
+      if(state.managerLive){
+        state.managerLive.tactic=mode;
+        managerLiveScheduleRemaining(state);
+        state.decisionCount++;
+        state.decisionPending=false;
+        $("liveMatchDecision").classList.add("hidden");
+        const decisionCopy={
+          attack:"🔥 You push forward and look to make the difference.",
+          protect:"🛡️ You play safer and protect the result.",
+          balanced:"⚖️ You keep your game balanced."
+        };
+        addLiveMatchFeed(`${state.minute}'`,decisionCopy[mode]||decisionCopy.balanced,"major");
+        liveMatchTimer=setInterval(tickLiveMatch,180);
+        return;
+      }
       if(mode==='sub'&&isPlayerMode(career)&&state.playerCareer?.onPitch){
         const pm=playerModeData(career),pc=state.playerCareer;
         pm.requestedSubMinute=state.minute;
@@ -31216,6 +31997,7 @@ function finishLiveMatchAnimation() {
       event._processed=true;
 
       liveResolveGoalScorer(event,state,minute);
+      managerLiveGoalAttribution(event,state);
 
       if(event.side==="home")state.displayHomeGoals++;
       else state.displayAwayGoals++;
@@ -31418,7 +32200,7 @@ function finishLiveMatchAnimation() {
 
 function tickLiveMatch() {
       const state=liveMatchState;
-      if(!state||state.committed||state.shootout)return;
+      if(!state||state.committed||state.shootout||state.managerLive?.choosing||state.decisionPending)return;
 
       state.minute++;
       const minute=state.minute;
@@ -31428,6 +32210,7 @@ function tickLiveMatch() {
       $("liveMatchProgress").style.width=`${Math.min(100,(minute/matchLimit)*100)}%`;
 
       playerModeProcessLiveSubstitution(minute,state);
+      managerLiveTick(state);
 
       const goals=state.goalEvents.filter(event=>
         Number(event.minute||0)===minute &&
@@ -31521,6 +32304,263 @@ function tickLiveMatch() {
       }
     }
 
+    const managerLiveSubLimit = 5;
+
+    function managerLiveSquad(career, game) {
+      if (!isManagerMode(career) || isPlayerMode(career)) return null;
+      const team = controlledCareerTeam(career);
+      if (!team) return null;
+      const formation = managerCurrentFormation(career);
+      const slots = managerFormationSlots(formation);
+      const assignments = {...managerEnsureFormationAssignments(career, team, formation)};
+      const activeIds = new Set(Object.values(assignments));
+      const players = new Map((team.managerSquad || []).map(player => [player.id, {
+        player, entered: activeIds.has(player.id) ? 0 : null,
+        exited: null, fitness: 100, rating: 6.5, injured: false
+      }]));
+      const reserves = [...players.values()].filter(row => row.entered === null)
+        .sort((a, b) => Number(b.player.position === "GK") - Number(a.player.position === "GK")
+          || b.player.overall - a.player.overall);
+      return {
+        career, team, slots, assignments, players,
+        bench: reserves.slice(0, 7).map(row => row.player.id),
+        side: team.id === game.homeId ? "home" : "away",
+        initialOverall: managerLineupOverall(team),
+        substitutions: [], choosing: false, tactic: "balanced"
+      };
+    }
+
+    function managerLiveActive(manager) {
+      return manager.slots.flatMap(slot => {
+        const row = manager.players.get(manager.assignments[slot.key]);
+        return row ? [{slot, row}] : [];
+      });
+    }
+
+    function managerLiveCanSub(state) {
+      const manager = state?.managerLive;
+      return !!(manager && !state.committed && !state.shootout && !state.finishing
+        && state.minute > 0 && state.minute < state.matchMinutes
+        && manager.substitutions.length < managerLiveSubLimit && manager.bench.length
+        && managerLiveActive(manager).length);
+    }
+
+    function managerLiveRefresh(state) {
+      const manager = state?.managerLive;
+      const controls = $("managerLiveControls");
+      controls.classList.toggle("hidden", !manager || !!state?.finishing || !!state?.shootout);
+      $("managerLiveSubForm").classList.toggle("hidden", !manager?.choosing);
+      if (!manager) return;
+      const active = managerLiveActive(manager);
+      const tired = active.filter(({row}) => row.fitness < 70).length;
+      const injured = active.filter(({row}) => row.injured).length;
+      $("managerLivePulse").textContent = [
+        `${managerLiveSubLimit - manager.substitutions.length} subs left`,
+        tired ? `${tired} tired` : "",
+        injured ? `${injured} injured` : ""
+      ].filter(Boolean).join(" · ");
+      const button = $("managerLiveSubToggle");
+      button.disabled = !managerLiveCanSub(state) && !manager.choosing;
+      button.setAttribute("aria-expanded", String(manager.choosing));
+      button.textContent = manager.choosing ? "Close substitutions" : "Substitutions";
+    }
+
+    function managerLivePlayerInfo(row, position) {
+      return `${position} · ${Math.round(row.fitness)}% fitness · ${row.rating.toFixed(1)} form${row.injured ? " · Injured" : ""}`;
+    }
+
+    function managerLiveRefreshBench(state, previousId = "") {
+      const manager = state.managerLive;
+      const slot = manager.slots.find(item => item.key === $("managerLiveOff").value);
+      if (!slot) return;
+      const outgoing = manager.players.get(manager.assignments[slot.key]);
+      $("managerLiveOffInfo").textContent = managerLivePlayerInfo(outgoing, slot.label);
+      const select = $("managerLiveOn");
+      const bench = manager.bench.map(id => manager.players.get(id)).filter(row => !row.injured);
+      bench.sort((a, b) => managerFormationFitScore(b.player, slot) - managerFormationFitScore(a.player, slot));
+      select.replaceChildren(...bench.map(row => new Option(
+        `${row.player.name} · ${row.player.position} · ${row.player.overall} OVR`, row.player.id
+      )));
+      if (bench.some(row => row.player.id === previousId)) select.value = previousId;
+      managerLiveShowBenchInfo(state);
+    }
+
+    function managerLiveShowBenchInfo(state) {
+      const manager = state?.managerLive;
+      if (!manager?.choosing) return;
+      const slot = manager.slots.find(item => item.key === $("managerLiveOff").value);
+      const row = manager.players.get($("managerLiveOn").value);
+      $("managerLiveOnInfo").textContent = row ? managerLivePlayerInfo(row, row.player.position)
+        + (slot && !slot.preferred.includes(row.player.position) ? " · Out of position" : "") : "No substitute available.";
+      $("managerLiveConfirm").disabled = !row;
+    }
+
+    function managerLiveTogglePanel(state, open) {
+      const manager = state?.managerLive;
+      if (!manager || (open && !managerLiveCanSub(state))) return;
+      manager.choosing = open;
+      if (open) {
+        clearInterval(liveMatchTimer);
+        liveMatchTimer = null;
+        const active = managerLiveActive(manager);
+        active.sort((a, b) => Number(b.row.injured) - Number(a.row.injured) || a.row.fitness - b.row.fitness);
+        $("managerLiveOff").replaceChildren(...active.map(({slot, row}) => new Option(
+          `${row.player.name} · ${slot.label} · ${Math.round(row.fitness)}%${row.injured ? " · Injured" : ""}`, slot.key
+        )));
+        managerLiveRefreshBench(state);
+      } else if (!state.decisionPending && !state.finishing && !state.shootout && !liveMatchTimer) {
+        liveMatchTimer = setInterval(tickLiveMatch, state.wentExtraTime ? 200 : 180);
+      }
+      if (state.decisionPending) {
+        $("liveMatchDecision").querySelectorAll("button:not(.player-live-only)").forEach(button => {
+          button.disabled = open;
+        });
+      }
+      managerLiveRefresh(state);
+      if (open) {
+        $("managerLiveOff").focus({preventScroll:true});
+        $("managerLiveSubForm").scrollIntoView({block:"nearest",behavior:"instant"});
+      } else if (!$("managerLiveSubToggle").disabled) {
+        $("managerLiveSubToggle").focus({preventScroll:true});
+      }
+    }
+
+    function managerLiveSubstitute(event) {
+      event.preventDefault();
+      const state = liveMatchState, manager = state?.managerLive;
+      if (!manager?.choosing || !managerLiveCanSub(state)) return;
+      const key = $("managerLiveOff").value, onId = $("managerLiveOn").value;
+      const slot = manager.slots.find(item => item.key === key);
+      const outgoing = manager.players.get(manager.assignments[key]);
+      const incoming = manager.players.get(onId);
+      if (!slot || !outgoing || !manager.bench.includes(onId) || !incoming || incoming.injured
+        || incoming.entered !== null || outgoing.exited !== null) return;
+      outgoing.exited = state.minute;
+      incoming.entered = state.minute;
+      manager.assignments[key] = onId;
+      manager.bench = manager.bench.filter(id => id !== onId);
+      manager.substitutions.push({offId:outgoing.player.id, onId, minute:state.minute, slot:key});
+      addLiveMatchFeed(`${state.minute}'`, `🔁 ${incoming.player.name} replaces ${outgoing.player.name}`, "major");
+      managerLiveScheduleRemaining(state);
+      managerLiveTogglePanel(state, false);
+    }
+
+    function managerLiveTick(state) {
+      const manager = state.managerLive;
+      if (!manager) return;
+      managerLiveActive(manager).forEach(({slot, row}) => {
+        const keeper = slot.label === "GK";
+        const baseDrain = keeper ? .16 : .47;
+        const ageDrain = Math.max(0, Number(row.player.age || 26) - 26) * .014;
+        const tacticDrain = manager.tactic === "attack" ? .12 : manager.tactic === "protect" ? -.05 : 0;
+        row.fitness = Math.max(0, row.fitness - baseDrain - ageDrain - tacticDrain - (row.injured ? .20 : 0));
+        if (!row.injured && state.minute > 16 && Math.random() < (keeper ? .0001 : .00025 + (100-row.fitness) * .000018)) {
+          row.injured = true;
+          row.rating = clamp(row.rating - .35, 1, 10);
+          addLiveMatchFeed(`${state.minute}'`, `🩹 ${row.player.name} picks up a knock.`, "major");
+        }
+      });
+      managerLiveRefresh(state);
+    }
+
+    function managerLiveExpectedGoals(state, remaining) {
+      const manager = state.managerLive;
+      const active = managerLiveActive(manager);
+      const total = active.reduce((sum, {row}) =>
+        sum + Number(row.player.overall || 70) - (100 - row.fitness) * .15 - (row.injured ? 12 : 0)
+        + (row.rating - 6.5) * 1.2, 0);
+      const delta = active.length ? total / active.length - manager.initialOverall : 0;
+      const effects = typeof managerMatchLineupEffects === "function"
+        ? managerMatchLineupEffects(manager.team, manager.career, manager.assignments)
+        : {ratingPenalty:0, keeperRisk:0};
+      const home = teamById(state.game.homeId), away = teamById(state.game.awayId);
+      const modifier = delta - Number(effects.ratingPenalty || 0);
+      const gap = Number(home?.strength || 70) - Number(away?.strength || 70)
+        + (manager.side === "home" ? modifier : -modifier);
+      const homeRate = Math.max(.05, (remaining / 30) * (.46 + gap / 120));
+      const awayRate = Math.max(.05, (remaining / 30) * (.46 - gap / 120));
+      const rates = {home:homeRate, away:awayRate};
+      const other = manager.side === "home" ? "away" : "home";
+      if (manager.tactic === "attack") { rates[manager.side] *= 1.65; rates[other] *= 1.34; }
+      if (manager.tactic === "protect") { rates[manager.side] *= .52; rates[other] *= .62; }
+      rates[other] += Number(effects.keeperRisk || 0) * remaining / 90;
+      return [rates.home, rates.away];
+    }
+
+    function managerLiveScheduleRemaining(state) {
+      const remaining = state.matchMinutes - state.minute;
+      if (remaining <= 0) return;
+      const [home, away] = managerLiveExpectedGoals(state, remaining).map(poisson);
+      const homeGoals = Math.min(Math.max(0, 9 - state.displayHomeGoals), home);
+      const awayGoals = Math.min(Math.max(0, 9 - state.displayAwayGoals), away);
+      const future = buildLiveGoalEvents(state.game, homeGoals, awayGoals, {
+        home: managerScorerIds(state.game.homeId, homeGoals, state.managerLive.career),
+        away: managerScorerIds(state.game.awayId, awayGoals, state.managerLive.career)
+      });
+      future.forEach(event => {
+        event.minute = state.minute + Math.max(1, Math.min(remaining, Math.round(event.minute * remaining / 90)));
+      });
+      state.finalHomeGoals = state.displayHomeGoals + homeGoals;
+      state.finalAwayGoals = state.displayAwayGoals + awayGoals;
+      state.goalEvents = state.goalEvents.filter(event => event._processed).concat(future).sort((a, b) => a.minute - b.minute);
+    }
+
+    function managerLiveGoalAttribution(event, state) {
+      const manager = state.managerLive;
+      if (!manager) return;
+      const active = managerLiveActive(manager);
+      active.forEach(({row}) => {
+        row.rating = clamp(row.rating + (event.side === manager.side ? .08 : -.15), 1, 10);
+      });
+      if (event.side !== manager.side) return;
+      const choose = (weights, excludedId) => {
+        const pool = active.filter(({row}) => row.player.id !== excludedId);
+        const weight = ({slot, row}) => {
+          const role = typeof managerFormationSlotPosition === "function"
+            ? managerFormationSlotPosition(slot) : slot.label;
+          return (weights[role] || 1) * (.7 + row.player.overall / 100)
+            * (.4 + row.fitness / 160) * (row.injured ? .35 : 1);
+        };
+        let roll = Math.random() * pool.reduce((sum, entry) => sum + weight(entry), 0);
+        return pool.find(entry => (roll -= weight(entry)) <= 0)?.row || pool.at(-1)?.row;
+      };
+      const scorer = choose({ST:6,RW:4.2,LW:4.2,CAM:3.2,CM:1.8,RB:.7,LB:.7,CB:.45,GK:.03});
+      if (!scorer) return;
+      event.scorerId = scorer.player.id;
+      scorer.rating = clamp(scorer.rating + 1.1, 1, 10);
+      const assister = Math.random() < .84
+        ? choose({CAM:6,RW:5,LW:5,CM:4,ST:2.8,RB:1.4,LB:1.4,CB:.65,GK:.08}, scorer.player.id)
+        : null;
+      event.assisterId = assister?.player.id || null;
+      if (assister) assister.rating = clamp(assister.rating + .65, 1, 10);
+    }
+
+    function managerLiveResult(state) {
+      const manager = state.managerLive;
+      if (!manager) return null;
+      return {
+        teamId:manager.team.id,
+        players:[...manager.players.values()].filter(row => row.entered !== null).map(row => ({
+          id:row.player.id, minutes:Math.max(0, (row.exited ?? state.matchMinutes) - row.entered),
+          rating:Number(row.rating.toFixed(1)), injured:row.injured
+        })),
+        substitutions:manager.substitutions.map(row => ({...row}))
+      };
+    }
+
+    function managerLiveRenderResult(state) {
+      const root = $("managerLiveReport");
+      const result = managerLiveResult(state);
+      root.classList.toggle("hidden", !result);
+      root.open = false;
+      if (!result) return;
+      const rows = result.players.map(row => {
+        const player = state.managerLive.players.get(row.id).player;
+        return `<tr><th scope="row">${escapeHtml(player.name)}${row.injured ? " · Injured" : ""}</th><td>${row.minutes}'</td><td>${row.rating.toFixed(1)}</td></tr>`;
+      });
+      $("managerLiveReportRows").innerHTML = rows.join("");
+    }
+
     function startLiveMatch(compId) {
       if (liveMatchTimer || $("liveMatchDialog")?.open) return;
       const comp = currentWorld()?.competitions?.find(item => item.id === compId);
@@ -31544,9 +32584,9 @@ function tickLiveMatch() {
 
       const stage = comp.stages?.[comp.currentStageIndex] || "Match";
       const knockout = !["League","Groups"].includes(stage);
-      const [homeGoals,awayGoals] = simulateScore(game.homeId,game.awayId,knockout,comp);
-
       const managerCareer = currentGameMode === "club-career" ? currentCareerSave() : null;
+      const managerLive = managerLiveSquad(managerCareer, game);
+      const [homeGoals,awayGoals] = simulateScore(game.homeId,game.awayId,knockout,comp);
       const liveScorers = isManagerMode(managerCareer) ? {home:managerScorerIds(game.homeId,homeGoals,managerCareer),away:managerScorerIds(game.awayId,awayGoals,managerCareer)} : null;
       liveMatchState = {
         compId:comp.id,
@@ -31573,6 +32613,7 @@ function tickLiveMatch() {
         winnerId:null,
         shootout:null,
         competitionWasFinished:!!comp.finished,
+        managerLive,
         playerCareer:isPlayerMode(managerCareer)?{
           selection:playerModeData(managerCareer)?.matchSelection||playerModeData(managerCareer)?.matchPlan?.selection||"",
           onPitch:(playerModeData(managerCareer)?.matchSelection||playerModeData(managerCareer)?.matchPlan?.selection)==="starter",
@@ -31623,6 +32664,8 @@ function tickLiveMatch() {
       $("liveMatchPhase").classList.remove("extra-time","penalties");
       document.querySelectorAll("[data-penalty-zone]").forEach(button=>button.disabled=false);
       setLiveMatchScore(0,0);
+      $("managerLiveReport").classList.add("hidden");
+      managerLiveRefresh(liveMatchState);
 
       $("liveMatchDialog").showModal();
       liveMatchTimer = setInterval(tickLiveMatch,180);
@@ -32011,8 +33054,10 @@ function tickLiveMatch() {
       const knockout = stage && !["League","Groups"].includes(stage);
       const neutral = !!comp?.isWorldCup || category === "world-cup" || (knockout && stage === "Final");
       const variance = category === "league" ? 1.15 : ["champions-league","europa-league"].includes(category) ? 1.22 : category === "world-cup" || comp?.isWorldCup ? 1.18 : 1.28;
-      const homePower = Number(home.strength || 0) + (neutral ? 0 : (category === "league" ? 2 : 1)) + clamp(averageForm(homeId),-1.5,1.5);
-      const awayPower = Number(away.strength || 0) + clamp(averageForm(awayId),-1.5,1.5);
+      const homeLineup = managerMatchLineupEffects(home);
+      const awayLineup = managerMatchLineupEffects(away);
+      const homePower = Number(home.strength || 0) + (neutral ? 0 : (category === "league" ? 2 : 1)) + clamp(averageForm(homeId),-1.5,1.5) - homeLineup.ratingPenalty;
+      const awayPower = Number(away.strength || 0) + clamp(averageForm(awayId),-1.5,1.5) - awayLineup.ratingPenalty;
       const gap = homePower-awayPower;
       const baseGoals = knockout ? 1.18 : 1.22;
       const attackSwing = gap/(category === "league" ? 22 : 20);
@@ -32022,8 +33067,8 @@ function tickLiveMatch() {
 
       for (let sample=0; sample<samples; sample++) {
         const swing = (((sample+.5)/samples)-.5)*variance;
-        const homeExpected = clamp(baseGoals+attackSwing+(gap>0?dominanceBonus:0)+swing,.08,5.4);
-        const awayExpected = clamp(baseGoals-attackSwing+(gap<0?dominanceBonus:0)-swing,.08,5.4);
+        const homeExpected = clamp(baseGoals+attackSwing+(gap>0?dominanceBonus:0)+swing,.08,5.4)+awayLineup.keeperRisk;
+        const awayExpected = clamp(baseGoals-attackSwing+(gap<0?dominanceBonus:0)-swing,.08,5.4)+homeLineup.keeperRisk;
         const homeGoals = poissonProbabilities(homeExpected);
         const awayGoals = poissonProbabilities(awayExpected);
         let sampleWin = 0, tie = 0;
@@ -32098,13 +33143,15 @@ function tickLiveMatch() {
 
       const stage=comp?.stages?.[comp.currentStageIndex]||"Knockout";
       const neutral=!!comp?.isWorldCup||comp?.category==="world-cup"||stage==="Final";
-      const homePower=Number(home.strength||70)+(neutral?0:.5)+clamp(averageForm(homeId),-1,1);
-      const awayPower=Number(away.strength||70)+clamp(averageForm(awayId),-1,1);
+      const homeLineup=managerMatchLineupEffects(home);
+      const awayLineup=managerMatchLineupEffects(away);
+      const homePower=Number(home.strength||70)+(neutral?0:.5)+clamp(averageForm(homeId),-1,1)-homeLineup.ratingPenalty;
+      const awayPower=Number(away.strength||70)+clamp(averageForm(awayId),-1,1)-awayLineup.ratingPenalty;
       const gap=homePower-awayPower;
 
       return [
-        Math.min(3,poisson(clamp(.34+gap/70,.06,1.15))),
-        Math.min(3,poisson(clamp(.34-gap/70,.06,1.15)))
+        Math.min(awayLineup.keeperRisk ? 6 : 3,poisson(clamp(.34+gap/70,.06,1.15)+awayLineup.keeperRisk/3)),
+        Math.min(homeLineup.keeperRisk ? 6 : 3,poisson(clamp(.34-gap/70,.06,1.15)+homeLineup.keeperRisk/3))
       ];
     }
 
@@ -32212,8 +33259,10 @@ function tickLiveMatch() {
         1.28;
 
       const homeAdvantage = neutral ? 0 : (category === "league" ? 2.0 : 1.0);
-      const homePower = Number(home.strength || 0) + homeAdvantage + homeForm;
-      const awayPower = Number(away.strength || 0) + awayForm;
+      const homeLineup = managerMatchLineupEffects(home);
+      const awayLineup = managerMatchLineupEffects(away);
+      const homePower = Number(home.strength || 0) + homeAdvantage + homeForm - homeLineup.ratingPenalty;
+      const awayPower = Number(away.strength || 0) + awayForm - awayLineup.ratingPenalty;
       const gap = homePower - awayPower;
 
       const baseGoals = knockout ? 1.18 : 1.22;
@@ -32227,14 +33276,14 @@ function tickLiveMatch() {
       homeExpected += swing;
       awayExpected -= swing;
 
-      homeExpected = clamp(homeExpected, 0.08, 5.4);
-      awayExpected = clamp(awayExpected, 0.08, 5.4);
+      homeExpected = clamp(homeExpected, 0.08, 5.4) + awayLineup.keeperRisk;
+      awayExpected = clamp(awayExpected, 0.08, 5.4) + homeLineup.keeperRisk;
 
       const hg = poisson(homeExpected);
       const ag = poisson(awayExpected);
 
       // Knockout draws stay draws after 90. Extra time and penalties decide them.
-      return [Math.min(hg,9), Math.min(ag,9)];
+      return [Math.min(hg,awayLineup.keeperRisk ? 15 : 9), Math.min(ag,homeLineup.keeperRisk ? 15 : 9)];
     }
 
     function averageForm(teamId) {
@@ -33100,13 +34149,18 @@ function tickLiveMatch() {
         game.penaltyAwayGoals=resolution.penaltyAwayGoals;
         game.penaltyWinnerId=resolution.penaltyWinnerId||null;
         if (forced?.watchedLive) game.watchedLive = true;
+        if (forced?.managerLineup) {
+          game.managerLineup=forced.managerLineup;
+          game.managerGoalEvents=forced.goalEvents||[];
+        }
         if (isManagerMode(currentCareerSave())) managerRecordMatchPlayerStats(
           comp,
           game,
           hg,
           ag,
           forced?.scorerIds||null,
-          forced?.goalEvents||null
+          forced?.goalEvents||null,
+          forced?.managerLineup||null
         );
         matchdayResult.games.push({...game});
         recordRivalryMatch(comp, { ...game, homeGoals:hg, awayGoals:ag }, stage);
@@ -34303,6 +35357,7 @@ function tickLiveMatch() {
       const world = currentWorld();
       const continueButton = $("continueQualificationBtn");
       const detailsButton = $("viewQualificationDetailsBtn");
+      $("fusCalQualificationReport").classList.toggle("hidden",!result.ok||isPlayerMode(world));
       const reviewButton=$("reviewOverflowQualifiersBtn"),removeButton=$("removeLowestQualifierBtn"),editButton=$("editOverflowRulesBtn");
       [reviewButton,removeButton,editButton].forEach(button=>button?.classList.add("hidden"));
       if (!result.ok) {
@@ -34475,6 +35530,7 @@ function tickLiveMatch() {
         }
 
         evolveWorldTeamStrengths(world);
+        fusClubCalendarArchiveSeason(world);
 
         regularCompetitions(world).forEach(comp => {
           resetCompetitionForGlobalSeason(comp,nextSeason);
@@ -35897,6 +36953,14 @@ function renderWorldCupQualification() {
     });
 
     $("liveMatchContinueBtn").addEventListener("click",continueAfterLiveMatch);
+    $("managerLiveSubToggle").addEventListener("click",()=>{
+      managerLiveTogglePanel(liveMatchState,!liveMatchState?.managerLive?.choosing);
+    });
+    $("managerLiveOff").addEventListener("change",()=>{
+      if(liveMatchState?.managerLive?.choosing)managerLiveRefreshBench(liveMatchState,$("managerLiveOn").value);
+    });
+    $("managerLiveOn").addEventListener("change",()=>managerLiveShowBenchInfo(liveMatchState));
+    $("managerLiveSubForm").addEventListener("submit",managerLiveSubstitute);
     document.querySelectorAll("[data-live-decision]").forEach(button=>button.addEventListener("click",()=>applyLiveMatchDecision(button.dataset.liveDecision)));
     document.querySelectorAll("[data-penalty-zone]").forEach(button=>button.addEventListener("click",()=>livePenaltyChoose(button.dataset.penaltyZone)));
     document.querySelectorAll("[data-live-shot-zone]").forEach(button=>button.addEventListener("click",()=>{
@@ -36337,6 +37401,7 @@ function renderWorldCupQualification() {
       if(event.currentTarget.disabled)return;
       commitGlobalNextSeason();
     });
+    $("fusCalQualificationReport").addEventListener("click",()=>openFusClubCalendar("report"));
     $("viewQualificationDetailsBtn").addEventListener("click",() => {
       if (!pendingGlobalSeasonTransition?.result) return;
       qualificationDetailsExpanded = !qualificationDetailsExpanded;
@@ -36447,7 +37512,7 @@ function renderWorldCupQualification() {
     bootFootballUniverse();
 
     function setupPhoneUpdate() {
-      const build = "2c718b94e815b029";
+      const build = "b7dfcbbc4d4c567c";
       const button = $("fusCheckUpdate");
       const status = $("fusUpdateStatus");
       const newest = "You’re on the newest version.";
