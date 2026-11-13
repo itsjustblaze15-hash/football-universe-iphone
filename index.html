@@ -11817,7 +11817,23 @@ button.fus-club-calendar-day[aria-pressed="true"] {
 }
 
 </style>
-
+<style>
+      .manager-live-squad {display:grid; gap:14px; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr)}
+      .manager-live-squad section {min-width:0}
+      .manager-live-squad h3 {margin:0 0 8px}
+      .manager-live-squad .manager-bench-grid {grid-template-columns:minmax(0,1fr)}
+      .manager-live-squad .manager-bench-player {width:100%}
+      .manager-live-squad .manager-bench-player.selected {outline:2px solid #80b7ff; outline-offset:-2px}
+      .manager-live-squad .manager-pitch-player:focus-visible {outline:2px solid #fff}
+      .manager-live-squad .manager-pitch-subline {white-space:nowrap; font-size:clamp(9px,2.6vw,12px)}
+      .manager-live-squad .fus-live-condition {color:#ffce78}
+      @media(max-width:720px){
+        .manager-live-squad {grid-template-columns:minmax(0,1fr)}
+        .manager-live-squad .manager-pitch {min-height:410px}
+        .manager-live-squad .manager-pitch-player {width:clamp(44px,17vw,68px)}
+      }
+    </style>
+    
 <style id="fus-phone-standings">
 @media (max-width: 760px), (max-width: 1000px) and (pointer: coarse),
        (max-width: 1000px) and (max-height: 500px) {
@@ -12322,9 +12338,19 @@ button.fus-club-calendar-day[aria-pressed="true"] {
           <span id="managerLivePulse" class="muted"></span>
         </div>
         <form id="managerLiveSubForm" class="manager-live-sub-form hidden">
-          <div class="manager-live-picks">
-            <label>Take off<select id="managerLiveOff" aria-describedby="managerLiveOffInfo"></select><small id="managerLiveOffInfo" class="muted"></small></label>
-            <label>Bring on<select id="managerLiveOn" aria-describedby="managerLiveOnInfo"></select><small id="managerLiveOnInfo" class="muted"></small></label>
+          <select id="managerLiveOff" hidden aria-hidden="true" tabindex="-1"></select>
+          <select id="managerLiveOn" hidden aria-hidden="true" tabindex="-1"></select>
+          <div class="manager-live-squad">
+            <section>
+              <h3>Choose who comes off</h3>
+              <div class="manager-pitch" id="managerLivePitch"></div>
+              <p id="managerLiveOffInfo" class="muted"></p>
+            </section>
+            <section class="manager-bench-section">
+              <h3>Choose who comes on</h3>
+              <div id="managerLiveBench" class="manager-bench-grid"></div>
+              <p id="managerLiveOnInfo" class="muted"></p>
+            </section>
           </div>
           <button type="submit" id="managerLiveConfirm" class="btn success">Confirm substitution</button>
         </form>
@@ -32369,10 +32395,72 @@ function tickLiveMatch() {
       return `${position} · ${Math.round(row.fitness)}% fitness · ${row.rating.toFixed(1)} form${row.injured ? " · Injured" : ""}`;
     }
 
+    function managerLiveRenderPicks(state) {
+      const manager = state.managerLive;
+      const off = $("managerLiveOff");
+      const on = $("managerLiveOn");
+      const pitch = $("managerLivePitch");
+      pitch.innerHTML = '<div class="manager-pitch-lines" aria-hidden="true"><span class="top-box"></span><span class="bottom-box"></span><span class="top-six"></span><span class="bottom-six"></span><span class="center-dot"></span></div>'
+        + managerLiveActive(manager).map(({slot, row}) => {
+          const player = row.player;
+          const penalty = managerFormationPositionPenalty(player, slot);
+          const label = managerLivePlayerInfo(row, slot.label);
+          return `<button type="button" class="manager-pitch-player" data-live-off="${escapeHtml(slot.key)}"
+            style="left:${slot.x}%;top:${slot.y}%" aria-label="${escapeHtml(player.name + " · " + label)}">
+            <span class="manager-player-disc ${managerPlayerPhoto(player) ? "has-photo" : ""}">
+              <span class="pitch-pos">${escapeHtml(slot.label)}</span>
+              ${managerPlayerFaceHtml(player,"pitch")}
+              <span class="pitch-ovr">${Math.max(1,player.overall-penalty)}</span>
+            </span>
+            <span class="manager-pitch-name">${escapeHtml(player.name)}</span>
+            <span class="manager-pitch-subline ${row.injured || row.fitness<70 ? "fus-live-condition" : ""}">${row.injured ? "Injured" : Math.round(row.fitness)+"%"} · ${row.rating.toFixed(1)}</span>
+          </button>`;
+        }).join("");
+      pitch.querySelectorAll("[data-live-off]").forEach(button => {
+        button.addEventListener("click", () => {
+          off.value = button.dataset.liveOff;
+          managerLiveRefreshBench(state, "");
+        });
+      });
+      const bench = $("managerLiveBench");
+      bench.innerHTML = Array.from(on.options).map(option => {
+        const row = manager.players.get(option.value);
+        const player = row.player;
+        return `<button type="button" class="manager-bench-player" data-live-on="${escapeHtml(player.id)}">
+          ${managerPlayerPhoto(player) ? `<span class="manager-bench-photo-wrap">${managerPlayerFaceHtml(player,"bench")}</span>` : `<span class="manager-bench-mini">${escapeHtml(player.position)}</span>`}
+          <span class="manager-bench-copy"><strong>${escapeHtml(player.name)}</strong><small>${escapeHtml(player.position)} · ${Math.round(row.fitness)}% fitness</small></span>
+          <span class="manager-bench-ovr">${player.overall}</span>
+        </button>`;
+      }).join("") || '<p class="muted">No substitutes available.</p>';
+      bench.querySelectorAll("[data-live-on]").forEach(button => {
+        button.addEventListener("click", () => {
+          on.value = button.dataset.liveOn;
+          managerLiveShowBenchInfo(state);
+        });
+      });
+      managerLiveMarkPicks();
+    }
+
+    function managerLiveMarkPicks() {
+      for (const [attr, field] of [["off", "managerLiveOff"], ["on", "managerLiveOn"]]) {
+        $("managerLiveSubForm").querySelectorAll(`[data-live-${attr}]`).forEach(button => {
+          const selected = button.getAttribute(`data-live-${attr}`) === $(field).value;
+          button.classList.toggle("selected", selected);
+          button.setAttribute("aria-pressed", String(selected));
+        });
+      }
+    }
+
     function managerLiveRefreshBench(state, previousId = "") {
       const manager = state.managerLive;
       const slot = manager.slots.find(item => item.key === $("managerLiveOff").value);
-      if (!slot) return;
+      if (!slot) {
+        $("managerLiveOffInfo").textContent = "Select a player on the pitch.";
+        $("managerLiveOn").replaceChildren();
+        managerLiveShowBenchInfo(state);
+        managerLiveRenderPicks(state);
+        return;
+      }
       const outgoing = manager.players.get(manager.assignments[slot.key]);
       $("managerLiveOffInfo").textContent = managerLivePlayerInfo(outgoing, slot.label);
       const select = $("managerLiveOn");
@@ -32381,8 +32469,10 @@ function tickLiveMatch() {
       select.replaceChildren(...bench.map(row => new Option(
         `${row.player.name} · ${row.player.position} · ${row.player.overall} OVR`, row.player.id
       )));
-      if (bench.some(row => row.player.id === previousId)) select.value = previousId;
+      select.value = previousId;
       managerLiveShowBenchInfo(state);
+      managerLiveRenderPicks(state);
+      $("managerLivePitch").querySelector('[aria-pressed="true"]')?.focus({preventScroll:true});
     }
 
     function managerLiveShowBenchInfo(state) {
@@ -32393,6 +32483,7 @@ function tickLiveMatch() {
       $("managerLiveOnInfo").textContent = row ? managerLivePlayerInfo(row, row.player.position)
         + (slot && !slot.preferred.includes(row.player.position) ? " · Out of position" : "") : "No substitute available.";
       $("managerLiveConfirm").disabled = !row;
+      managerLiveMarkPicks();
     }
 
     function managerLiveTogglePanel(state, open) {
@@ -32407,6 +32498,7 @@ function tickLiveMatch() {
         $("managerLiveOff").replaceChildren(...active.map(({slot, row}) => new Option(
           `${row.player.name} · ${slot.label} · ${Math.round(row.fitness)}%${row.injured ? " · Injured" : ""}`, slot.key
         )));
+        $("managerLiveOff").value = "";
         managerLiveRefreshBench(state);
       } else if (!state.decisionPending && !state.finishing && !state.shootout && !liveMatchTimer) {
         liveMatchTimer = setInterval(tickLiveMatch, state.wentExtraTime ? 200 : 180);
@@ -32418,7 +32510,7 @@ function tickLiveMatch() {
       }
       managerLiveRefresh(state);
       if (open) {
-        $("managerLiveOff").focus({preventScroll:true});
+        $("managerLivePitch").querySelector("button")?.focus({preventScroll:true});
         $("managerLiveSubForm").scrollIntoView({block:"nearest",behavior:"instant"});
       } else if (!$("managerLiveSubToggle").disabled) {
         $("managerLiveSubToggle").focus({preventScroll:true});
@@ -37512,7 +37604,7 @@ function renderWorldCupQualification() {
     bootFootballUniverse();
 
     function setupPhoneUpdate() {
-      const build = "b7dfcbbc4d4c567c";
+      const build = "540fbdd5f8d1eb84";
       const button = $("fusCheckUpdate");
       const status = $("fusUpdateStatus");
       const newest = "You’re on the newest version.";
